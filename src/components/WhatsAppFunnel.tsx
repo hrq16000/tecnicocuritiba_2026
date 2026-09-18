@@ -297,8 +297,31 @@ export const WhatsAppFunnel = () => {
     document.addEventListener("click", handler, true);
 
     const evHandler = (e: Event) => {
-      const detail = (e as CustomEvent<{ location?: string; message?: string }>).detail || {};
+      const detail = (e as CustomEvent<{
+        location?: string;
+        message?: string;
+        equipment?: Equipment;
+      }>).detail || {};
       const loc = detail.location || "programmatic";
+
+      if (detail.equipment && getBranch(detail.equipment)) {
+        const nextAnswers: Answers = {
+          ...EMPTY,
+          equipamento: detail.equipment,
+        };
+        setAnswers(nextAnswers);
+        setStep(1);
+        persist({
+          answers: nextAnswers,
+          step: 1,
+          originLocation: loc,
+        });
+        track("wa_funnel_preselect", {
+          equipamento: detail.equipment,
+          cta_location: loc,
+        });
+      }
+
       trackCTAClick("whatsapp", loc);
       openFunnel(loc, detail.message);
     };
@@ -330,7 +353,7 @@ export const WhatsAppFunnel = () => {
       window.removeEventListener("wa-funnel:open", evHandler as EventListener);
       window.open = originalOpen;
     };
-  }, [openFunnel]);
+  }, [openFunnel, persist]);
 
   // Deep link #agendamento / #triagem — pré-seleciona serviço e sintoma.
   // Como o hash permanece na URL, um reload restaura o mesmo contexto.
