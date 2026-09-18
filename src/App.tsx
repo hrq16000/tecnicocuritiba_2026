@@ -7,6 +7,7 @@ import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { WhatsAppFunnel } from "./components/WhatsAppFunnel";
 import AutoBreadcrumbSchema from "./components/AutoBreadcrumbSchema";
 import { WhatsAppFloat } from "./components/WhatsAppFloat";
+import { EntryIntentPopup } from "./components/EntryIntentPopup";
 
 
 const LegacyApp = lazy(() => import("./LegacyApp"));
@@ -207,6 +208,7 @@ const HomeApp = () => {
         </Suspense>
       )}
       <AutoBreadcrumbSchema />
+      <EntryIntentPopup />
       <WhatsAppFunnel />
       <WhatsAppFloat />
       <ConsentBanner />
