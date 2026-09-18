@@ -148,7 +148,7 @@ export const EntryIntentPopup = () => {
           <div className="relative flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground">
             <img
               src="/lovable-uploads/87899615-1234-4c6d-a8ca-ee38ec566ef4.webp"
-              alt=""
+              alt="Técnico em Curitiba"
               width="304"
               height="98"
               className="h-9 w-auto max-w-[132px] rounded-md bg-background/95 object-contain px-1"
