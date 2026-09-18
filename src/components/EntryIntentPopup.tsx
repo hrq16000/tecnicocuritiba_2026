@@ -15,13 +15,18 @@ const EXCLUDED_PREFIXES = [
   "/avaliar",
   "/status",
   "/exclusao-dados",
-  "/politica-",
+  "/politica",
   "/termos-e-condicoes",
 ];
 
 export function shouldShowEntryIntent(pathname: string) {
   const path = (pathname || "/").replace(/\/+$/, "") || "/";
-  return !EXCLUDED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+  return !EXCLUDED_PREFIXES.some(
+    (prefix) =>
+      path === prefix ||
+      path.startsWith(`${prefix}/`) ||
+      path.startsWith(`${prefix}-`),
+  );
 }
 
 function markSeen() {
