@@ -155,7 +155,7 @@ export const EntryIntentPopup = () => {
             />
             <div className="min-w-0 flex-1">
               <DialogPrimitive.Title className="truncate text-sm font-extrabold sm:text-base">
-                Técnico Curitiba
+                Técnico em Curitiba
               </DialogPrimitive.Title>
               <DialogPrimitive.Description className="flex items-center gap-1.5 text-[11px] text-primary-foreground/85">
                 <span className="h-2 w-2 rounded-full bg-[hsl(var(--whatsapp))]" aria-hidden="true" />
