@@ -147,6 +147,7 @@ jobs:
         env:
           BASE_URL: http://localhost:8080
           FAIL_ON_DIFF: "1"
+          SAMPLE: "60"
         run: node scripts/report-faq-parity.mjs
       - name: Upload relatório de paridade FAQ
         if: always()
