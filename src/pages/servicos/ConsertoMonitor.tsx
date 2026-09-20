@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageSEO } from "@/components/PageSEO";
+import SiteBaseSchema from "@/components/SiteBaseSchema";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -156,6 +157,7 @@ const ConsertoMonitor = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SiteBaseSchema />
       <PageSEO
         title="Conserto de Monitor em Curitiba | Coleta e Entrega | Técnico em Curitiba"
         description="Conserto de monitor LED, LCD, IPS e ultrawide em Curitiba e região. Coleta e entrega inclusas, diagnóstico em bancada e orçamento aprovado antes do reparo."
