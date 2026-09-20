@@ -2289,7 +2289,7 @@ docker run -d --name db --network minha-rede postgres
   },
   "backup-como-proteger-seus-arquivos": {
     title: "Backup: Como Proteger Seus Arquivos Importantes",
-    excerpt: "Não espere perder seus dados para fazer backup. Conheça as melhores práticas para manter seus arquivos seguros usando métodos simples e eficientes.",
+    excerpt: "Aprenda a proteger documentos, fotos e trabalhos com uma rotina de backup simples, usando cópias locais e na nuvem para reduzir o risco de perda de dados.",
     date: "2024-01-02",
     readTime: "5 min",
     category: "Segurança",
@@ -2948,7 +2948,7 @@ docker run -d --name db --network minha-rede postgres
 
   "backup-nuvem-empresas-qual-escolher": {
     title: "Backup na Nuvem Para Empresas: Qual Escolher?",
-    excerpt: "Comparativo entre OneDrive, Google Drive e soluções profissionais.",
+    excerpt: "Compare OneDrive, Google Drive e soluções profissionais de backup para empresas, considerando integração, versionamento, automação, segurança e recuperação.",
     date: "2024-01-05",
     readTime: "8 min",
     category: "Segurança",
