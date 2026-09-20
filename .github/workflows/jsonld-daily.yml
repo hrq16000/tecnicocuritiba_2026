@@ -12,11 +12,14 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: bun install --frozen-lockfile
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Validar JSON-LD LocalBusiness/WebSite em produção
