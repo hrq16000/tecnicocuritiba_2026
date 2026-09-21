@@ -1,0 +1,32 @@
+{
+  "alto-falante-queimado-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/alto-falante-queimado-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990631347.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "amplificador-nao-liga-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/amplificador-nao-liga-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990640132.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "assistencia-tecnica-urgente-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/assistencia-tecnica-urgente-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990649076.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "backup-perdido-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/backup-perdido-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990657985.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "cabo-rede-nao-funciona-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/cabo-rede-nao-funciona-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990666536.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "caixa-som-nao-carrega-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/caixa-som-nao-carrega-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990675865.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "caixa-som-sem-audio-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/caixa-som-sem-audio-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990684467.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "caixa-som-sem-bluetooth-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/caixa-som-sem-bluetooth-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990693126.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "camera-seguranca-nao-funciona-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/camera-seguranca-nao-funciona-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990702540.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  },
+  "celular-bateria-inchada-curitiba": {
+    "error": "Error: Command failed: npx -y lighthouse@12 \"https://tecnicocuritiba.com.br/problemas/celular-bateria-inchada-curitiba\" --form-factor=mobile --output=json --output-path=/tmp/lh-mobile-1789990711510.json --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\""
+  }
+}
