@@ -128,6 +128,12 @@ for (const [name, paths] of files) {
 }
 
 // 5) Sitemap index.
+let includeNewsSitemap = false;
+try {
+  const newsXml = readFileSync(resolve("public/sitemap-news.xml"), "utf8");
+  includeNewsSitemap = /<url\b/.test(newsXml) && /<news:news\b/.test(newsXml);
+} catch { /* sem arquivo de notícias => não anunciar no índice */ }
+
 const indexXml =
   `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   files
@@ -136,7 +142,9 @@ const indexXml =
         `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${TODAY}</lastmod></sitemap>`,
     )
     .join("\n") +
-  `\n  <sitemap><loc>${BASE_URL}/sitemap-news.xml</loc><lastmod>${TODAY}</lastmod></sitemap>\n` +
+  (includeNewsSitemap
+    ? `\n  <sitemap><loc>${BASE_URL}/sitemap-news.xml</loc><lastmod>${TODAY}</lastmod></sitemap>\n`
+    : "\n") +
   `</sitemapindex>\n`;
 
 writeFileSync(resolve("public/sitemap-index.xml"), indexXml);
