@@ -33,6 +33,13 @@ describe("scripts/generate-sitemaps.mjs", () => {
     expect(new Set(urls).size).toBe(EXPECTED_PROBLEMAS);
   });
 
+  it("não anuncia sitemap-news vazio no índice", () => {
+    const index = readFileSync(resolve(ROOT, "public/sitemap-index.xml"), "utf8");
+    const news = readFileSync(resolve(ROOT, "public/sitemap-news.xml"), "utf8");
+    expect(news).not.toMatch(/<url\\b/);
+    expect(index).not.toContain("sitemap-news.xml");
+  });
+
   it("está referenciado no sitemap-index.xml e no robots.txt", () => {
     const index = readFileSync(resolve(ROOT, "public/sitemap-index.xml"), "utf8");
     expect(index).toContain("sitemap-problemas.xml");
