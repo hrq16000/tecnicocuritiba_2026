@@ -36,7 +36,7 @@ describe("scripts/generate-sitemaps.mjs", () => {
   it("não anuncia sitemap-news vazio no índice", () => {
     const index = readFileSync(resolve(ROOT, "public/sitemap-index.xml"), "utf8");
     const news = readFileSync(resolve(ROOT, "public/sitemap-news.xml"), "utf8");
-    expect(news).not.toMatch(/<url\\b/);
+    expect(news).not.toMatch(/<url\b/);
     expect(index).not.toContain("sitemap-news.xml");
   });
 
