@@ -21,6 +21,7 @@ import {
   MSG_COLETA_RESUMO,
 } from "@/lib/coletaConfig";
 import ServiceOperationalSpec from "@/components/ServiceOperationalSpec";
+import SiteBaseSchema from "@/components/SiteBaseSchema";
 
 const WHATSAPP_NUMBER = "5541997452053";
 
@@ -87,6 +88,7 @@ const ConsertoCelular = () => {
         path="/servicos/conserto-celular"
         breadcrumbs={[{ name: "Início", path: "/" }, { name: "Serviços", path: "/servicos" }, { name: "Conserto de Celular", path: "/servicos/conserto-celular" }]}
       />
+      <SiteBaseSchema />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Header />
       <main id="main-content">
