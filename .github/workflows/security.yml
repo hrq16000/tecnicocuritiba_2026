@@ -29,21 +29,43 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # 1) Fail the build on high/critical npm vulnerabilities.
-      - name: npm audit (high+critical)
+      # 1) Collect high/critical npm vulnerabilities, but defer failure until
+      # every independent security check has had a chance to run.
+      - name: npm audit report (high+critical)
         run: |
-          set -e
           bunx --bun npm audit --audit-level=high --json > audit.json || true
-          node -e "const r=require('./audit.json');const m=r.metadata?.vulnerabilities||{};const bad=(m.high||0)+(m.critical||0);console.log('high:',m.high,'critical:',m.critical);if(bad>0){process.exit(1)}"
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const r = JSON.parse(fs.readFileSync("audit.json", "utf8"));
+          const m = r.metadata?.vulnerabilities || {};
+          console.log("high:", m.high || 0, "critical:", m.critical || 0);
+          for (const [name, v] of Object.entries(r.vulnerabilities || {})) {
+            if (!["high", "critical"].includes(v.severity)) continue;
+            const via = (v.via || [])
+              .map((item) => typeof item === "string" ? item : item.title || item.url || "advisory")
+              .join(" | ");
+            console.log(`- ${name}: severity=${v.severity}; direct=${Boolean(v.isDirect)}; range=${v.range || "?"}; fix=${JSON.stringify(v.fixAvailable)}; via=${via}`);
+          }
+          NODE
+
+      - name: Upload npm audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit.json
+          retention-days: 14
 
       # 2) Block secrets being committed.
       - name: Gitleaks secret scan
+        if: always()
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 3) Static analysis on JS/TS.
       - name: Semgrep (OWASP/React rulesets)
+        if: always()
         uses: returntocorp/semgrep-action@v1
         with:
           config: >-
@@ -54,12 +76,32 @@ jobs:
 
       # 4) Guard against regressions in security HTTP headers.
       - name: Verify security headers in public/_headers
+        if: always()
         run: bun scripts/check-security-headers.ts
 
       # 5) Guard against tables shipping without RLS.
       - name: Verify every public-schema CREATE TABLE has RLS + GRANT
+        if: always()
         run: bun scripts/check-rls-migrations.ts
 
       # 6) Guard against SEO regressions on the landing shell (title / desc / unique H1).
       - name: Verify SEO basics on index.html
+        if: always()
         run: bun scripts/check-seo-basics.ts index.html
+
+      # Keep the job red for dependency risk, but only after all checks above.
+      - name: Enforce npm audit high+critical
+        if: always()
+        run: |
+          node - <<'NODE'
+          const fs = require("node:fs");
+          if (!fs.existsSync("audit.json")) {
+            console.error("audit.json ausente");
+            process.exit(1);
+          }
+          const r = JSON.parse(fs.readFileSync("audit.json", "utf8"));
+          const m = r.metadata?.vulnerabilities || {};
+          const bad = (m.high || 0) + (m.critical || 0);
+          console.log("high:", m.high || 0, "critical:", m.critical || 0);
+          if (bad > 0) process.exit(1);
+          NODE
