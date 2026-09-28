@@ -11,14 +11,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Lint (non-blocking warnings)
         run: npm run lint --silent || echo "::warning::lint reported issues"
       - name: Typecheck (tsc)
@@ -98,8 +98,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Build
@@ -194,8 +197,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
       - name: Build
@@ -289,8 +295,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Install Lighthouse CI
         run: npm i -g @lhci/cli@0.13.x
       - name: Build
@@ -320,8 +329,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Build
         run: npm run build
       - name: Start preview
@@ -349,8 +361,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
       - name: Build
@@ -423,8 +438,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Install Lighthouse
         run: npm i -g lighthouse@12
       - name: Build
@@ -458,8 +476,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Build
         run: npm run build
       - name: Start preview
