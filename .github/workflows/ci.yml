@@ -86,6 +86,8 @@ jobs:
             git --no-pager diff -- public/sitemap-images.xml | head -40
             exit 1
           }
+      - name: Install Chromium for JSON-LD validation
+        run: npx playwright install --with-deps chromium
       - name: JSON-LD validation
         run: npm run validate:jsonld
 
