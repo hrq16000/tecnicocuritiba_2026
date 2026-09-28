@@ -6,12 +6,10 @@ on:
   push:
     branches: [main]
   schedule:
-    # Weekly Monday 06:00 UTC re-scan to catch drift in dependencies.
     - cron: "0 6 * * 1"
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   audit:
@@ -29,37 +27,64 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # 1) Fail the build on high/critical npm vulnerabilities.
-      - name: npm audit (high+critical)
+      # Canonical dependency audit: this repository is locked by bun.lock.
+      # Keep the result blocking, but run the independent checks as well.
+      - name: Bun audit (high+critical)
+        id: bun_audit
+        continue-on-error: true
         run: |
-          set -e
-          bunx --bun npm audit --audit-level=high --json > audit.json || true
-          node -e "const r=require('./audit.json');const m=r.metadata?.vulnerabilities||{};const bad=(m.high||0)+(m.critical||0);console.log('high:',m.high,'critical:',m.critical);if(bad>0){process.exit(1)}"
+          set -o pipefail
+          bun audit --audit-level=high 2>&1 | tee bun-audit.txt
 
-      # 2) Block secrets being committed.
-      - name: Gitleaks secret scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # 3) Static analysis on JS/TS.
-      - name: Semgrep (OWASP/React rulesets)
-        uses: returntocorp/semgrep-action@v1
+      - name: Upload Bun audit report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          config: >-
-            p/owasp-top-ten
-            p/javascript
-            p/typescript
-            p/react
+          name: bun-audit-report
+          path: bun-audit.txt
+          retention-days: 14
 
-      # 4) Guard against regressions in security HTTP headers.
+      # OSS CLI scan avoids the organization-license requirement introduced by
+      # gitleaks/gitleaks-action@v2 while keeping the same secret gate.
+      - name: Gitleaks secret scan
+        if: always()
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:b109bc5f8f76a38196a3e413704fc5b9e3c32360bce4e4b603bd6f45b3721dbb \
+            detect --source=/repo --redact --exit-code=1
+
+      # The previous returntocorp/semgrep-action image bundled Semgrep 1.36,
+      # which cannot parse current registry severities. Pin a current CE CLI.
+      - name: Install Semgrep CE
+        if: always()
+        run: python3 -m pip install --disable-pip-version-check "semgrep==1.178.0"
+
+      - name: Semgrep (OWASP/React rulesets)
+        if: always()
+        run: |
+          semgrep scan \
+            --config=p/owasp-top-ten \
+            --config=p/javascript \
+            --config=p/typescript \
+            --config=p/react \
+            --error \
+            .
+
       - name: Verify security headers in public/_headers
+        if: always()
         run: bun scripts/check-security-headers.ts
 
-      # 5) Guard against tables shipping without RLS.
       - name: Verify every public-schema CREATE TABLE has RLS + GRANT
+        if: always()
         run: bun scripts/check-rls-migrations.ts
 
-      # 6) Guard against SEO regressions on the landing shell (title / desc / unique H1).
       - name: Verify SEO basics on index.html
+        if: always()
         run: bun scripts/check-seo-basics.ts index.html
+
+      - name: Enforce Bun audit high+critical
+        if: always() && steps.bun_audit.outcome == 'failure'
+        run: |
+          echo "bun audit encontrou vulnerabilidade high/critical no bun.lock canônico."
+          exit 1
