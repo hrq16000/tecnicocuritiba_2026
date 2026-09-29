@@ -44,7 +44,7 @@ SELECT cron.schedule(
   $$
   SELECT net.http_post(
     url:='https://fvleuzkxsykltjbknrmh.supabase.co/functions/v1/og-validate-cities',
-    headers:='{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bGV1emt4c3lrbHRqYmtucm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NzgwNDQsImV4cCI6MjA4NDM1NDA0NH0.mG3A3rdbIJ-5couORXyGxDmySsShmNvVwR8D7l4L8BA"}'::jsonb,
+    headers:='{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bGV1emt4c3lrbHRqYmtucm1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NzgwNDQsImV4cCI6MjA4NDM1NDA0NH0.mG3A3rdbIJ-5couORXyGxDmySsShmNvVwR8D7l4L8BA"}'::jsonb, -- gitleaks:allow — chave Supabase anon/publishable, não service_role
     body:='{"source":"cron"}'::jsonb
   ) AS request_id;
   $$
