@@ -36,8 +36,8 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          BASE_SHA="$(git merge-base HEAD "origin/${{ github.base_ref }}")"
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null || git fetch origin "$BASE_SHA" --depth=1
 
           if git diff --name-only "$BASE_SHA...HEAD" | grep -qx 'bun.lock'; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -107,8 +107,8 @@ jobs:
       - name: Semgrep PR differential
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          BASE_SHA="$(git merge-base HEAD "origin/${{ github.base_ref }}")"
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null || git fetch origin "$BASE_SHA" --depth=1
           semgrep scan \
             --config=p/owasp-top-ten \
             --config=p/javascript \
