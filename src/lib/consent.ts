@@ -9,7 +9,7 @@
  * ("granted" somente quando ads + analytics estão liberados), para não quebrar
  * `clickEvents.ts`, `adsense.ts` e a página /status-anuncios.
  */
-export const CONSENT_KEY = "lgpd_consent_v2";
+export const CONSENT_KEY = "lgpd_consent_v2"; // gitleaks:allow — chave localStorage de consentimento
 export const LEGACY_CONSENT_KEY = "lgpd_consent_v1";
 export const CONSENT_CHANGED_EVENT = "lgpd:consent-changed";
 export const CONSENT_OPEN_EVENT = "lgpd:consent-open";
