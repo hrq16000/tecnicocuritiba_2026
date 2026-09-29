@@ -10,7 +10,7 @@
  * `clickEvents.ts`, `adsense.ts` e a página /status-anuncios.
  */
 export const CONSENT_KEY = "lgpd_consent_v2"; // gitleaks:allow — chave localStorage de consentimento
-export const LEGACY_CONSENT_KEY = "lgpd_consent_v1";
+export const LEGACY_CONSENT_KEY = "lgpd_consent_v1"; // gitleaks:allow — chave localStorage legada
 export const CONSENT_CHANGED_EVENT = "lgpd:consent-changed";
 export const CONSENT_OPEN_EVENT = "lgpd:consent-open";
 
