@@ -1,4 +1,4 @@
-name: sitemap-submit
+name: sitemap-health
 
 on:
   push:
@@ -9,41 +9,45 @@ on:
       - "scripts/generate-sitemap*.mjs"
       - "scripts/generate-sitemap*.ts"
   schedule:
-    # Diariamente 04:15 UTC — mantém Google/Bing sincronizados sem intervenção manual.
     - cron: "15 4 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: sitemap-health-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  submit:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Ping Google Search Console (sitemap)
+
+      - name: Validate production sitemap
+        shell: bash
         run: |
-          set -e
+          set -euo pipefail
           SITEMAP="https://tecnicocuritiba.com.br/sitemap.xml"
-          echo "→ Google ping: $SITEMAP"
-          code=$(curl -sS -o /tmp/google.txt -w "%{http_code}" "https://www.google.com/ping?sitemap=$SITEMAP" || true)
-          echo "Google HTTP $code"
-          cat /tmp/google.txt || true
-      - name: Ping Bing Webmaster Tools (sitemap)
+          BODY="$(mktemp)"
+          CODE="$(curl -sS -L -o "$BODY" -w "%{http_code}" "$SITEMAP")"
+
+          echo "Production sitemap HTTP $CODE"
+          test "$CODE" = "200"
+          grep -Eq '<(sitemapindex|urlset)([[:space:]>])' "$BODY"
+          grep -q 'tecnicocuritiba.com.br' "$BODY"
+
+          echo "✓ sitemap.xml disponível e parseável em produção"
+
+      - name: Validate robots sitemap reference
+        shell: bash
         run: |
-          set -e
-          SITEMAP="https://tecnicocuritiba.com.br/sitemap.xml"
-          echo "→ Bing ping: $SITEMAP"
-          code=$(curl -sS -o /tmp/bing.txt -w "%{http_code}" "https://www.bing.com/ping?sitemap=$SITEMAP" || true)
-          echo "Bing HTTP $code"
-          cat /tmp/bing.txt || true
-      - name: IndexNow (Bing/Yandex batch)
-        env:
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          set -euo pipefail
+          ROBOTS="$(curl -fsSL https://tecnicocuritiba.com.br/robots.txt)"
+          printf '%s\n' "$ROBOTS" | grep -q 'Sitemap: https://tecnicocuritiba.com.br/sitemap.xml'
+          echo "✓ robots.txt referencia o sitemap canônico"
+
+      - name: Search engine submission policy
         run: |
-          if [ -z "$INDEXNOW_KEY" ]; then
-            echo "::warning::INDEXNOW_KEY ausente — pulando IndexNow."
-            exit 0
-          fi
-          curl -sS -X POST "https://api.indexnow.org/IndexNow" \
-            -H "Content-Type: application/json" \
-            -d "{\"host\":\"tecnicocuritiba.com.br\",\"key\":\"$INDEXNOW_KEY\",\"urlList\":[\"https://tecnicocuritiba.com.br/sitemap.xml\"]}" \
-            -w "\nIndexNow HTTP %{http_code}\n"
+          echo "Google/Bing sitemap ping endpoints foram removidos por obsolescência."
+          echo "Google Search Console é atualizado pelo GSC Wizard/fluxo SEO externo."
+          echo "IndexNow de URLs alteradas permanece no job dedicado do CI principal."
