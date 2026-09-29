@@ -4,7 +4,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const HOST = "tecnicocuritiba.com.br";
-const KEY = "f783ab585dfa9e6b017cb058009cccae";
+const KEY = "f783ab585dfa9e6b017cb058009cccae"; // gitleaks:allow — valor público/não secreto
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 const ENDPOINT = "https://api.indexnow.org/IndexNow";
 
