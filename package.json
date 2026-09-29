@@ -8,7 +8,7 @@
     "dev": "vite",
     "prebuild": "node scripts/generate-sitemaps.mjs && node scripts/generate-rss.mjs && bun scripts/check-seo-basics.ts index.html",
     "build": "vite build",
-    "postbuild": "bun scripts/check-seo-basics.ts dist/index.html",
+    "postbuild": "bun scripts/check-seo-basics.ts dist/index.html && node scripts/check-critical-deep-routes.mjs",
     "build:dev": "node scripts/generate-sitemaps.mjs && vite build --mode development",
     "check:seo": "bun scripts/check-seo-basics.ts index.html",
     "lint": "eslint .",
@@ -58,7 +58,6 @@
     "check:alt": "node scripts/check-alt-text.mjs",
     "photos:optimize": "node scripts/optimize-photos.mjs",
     "check:photos": "node scripts/optimize-photos.mjs --check",
-
     "lgpd:ropa": "node scripts/generate-ropa.mjs",
     "check:ropa": "node scripts/generate-ropa.mjs --check"
   },
