@@ -72,7 +72,11 @@ async function auditRoute(browser, url, required) {
   const errors = [];
   const page = await browser.newPage();
   try {
-    await page.goto(url, { waitUntil: "networkidle" });
+    // Não bloqueie a auditoria por conexões persistentes de analytics/telemetria.
+    // O documento precisa carregar; networkidle é apenas best-effort.
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
+    await page.waitForTimeout(500);
     // Seções lazy injetam schemas ao entrar no viewport: rola até o fim antes de coletar.
     for (let i = 0; i < 2; i++) {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
