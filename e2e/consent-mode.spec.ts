@@ -7,7 +7,7 @@ import { test, expect, type Page } from "@playwright/test";
  *  - o link da política abre corretamente em mobile e desktop
  */
 
-const CONSENT_KEY = "lgpd_consent_v2";
+const CONSENT_KEY = "lgpd_consent_v2"; // gitleaks:allow — chave localStorage de consentimento
 const POLICY_PATH = "/politica-de-cookies-e-anuncios";
 
 const VIEWPORTS = [
