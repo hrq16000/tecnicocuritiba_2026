@@ -10,7 +10,7 @@
  */
 import { sentryBreadcrumb, sentryMessage } from "./sentry";
 
-const KEY = "wa_funnel_diag_v1";
+const KEY = "wa_funnel_diag_v1"; // gitleaks:allow — valor público/não secreto
 const MAX = 60;
 
 export type FunnelDiagEvent = {
