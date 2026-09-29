@@ -65,6 +65,7 @@ try {
 // sitemap-news.xml só cobre 30 dias (regra do Google News), então sem este
 // bucket os posts antigos ficam fora de qualquer sitemap indexável.
 const blogSlugs = [];
+let hasRecentNewsPosts = false;
 try {
   const blogSrc = readFileSync(resolve("src/pages/Blog.tsx"), "utf8");
   const start = blogSrc.indexOf("const blogPosts = [");
@@ -72,6 +73,15 @@ try {
     const end = blogSrc.indexOf("\n];", start);
     const block = blogSrc.slice(start, end === -1 ? undefined : end);
     for (const m of block.matchAll(/slug:\s*"([^"]+)"/g)) blogSlugs.push(m[1]);
+
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    for (const m of block.matchAll(/slug:\s*"([^"]+)"[\s\S]{0,1600}?date:\s*"([^"]+)"/g)) {
+      const publishedAt = new Date(`${m[2]}T08:00:00-03:00`).getTime();
+      if (!Number.isNaN(publishedAt) && Date.now() - publishedAt <= THIRTY_DAYS) {
+        hasRecentNewsPosts = true;
+        break;
+      }
+    }
   }
 } catch { /* opcional */ }
 for (const s of new Set(blogSlugs)) routes.add(`/blog/${s}`);
@@ -128,6 +138,8 @@ for (const [name, paths] of files) {
 }
 
 // 5) Sitemap index.
+const includeNewsSitemap = hasRecentNewsPosts;
+
 const indexXml =
   `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   files
@@ -136,7 +148,9 @@ const indexXml =
         `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${TODAY}</lastmod></sitemap>`,
     )
     .join("\n") +
-  `\n  <sitemap><loc>${BASE_URL}/sitemap-news.xml</loc><lastmod>${TODAY}</lastmod></sitemap>\n` +
+  (includeNewsSitemap
+    ? `\n  <sitemap><loc>${BASE_URL}/sitemap-news.xml</loc><lastmod>${TODAY}</lastmod></sitemap>\n`
+    : "\n") +
   `</sitemapindex>\n`;
 
 writeFileSync(resolve("public/sitemap-index.xml"), indexXml);

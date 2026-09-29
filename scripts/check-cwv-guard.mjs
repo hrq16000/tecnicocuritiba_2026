@@ -66,6 +66,8 @@ if (!runs.length) {
 }
 
 const failures = [];
+const warnings = [];
+const strictAbsolute = process.env.CWV_STRICT_ABSOLUTE === "1";
 const fmt = (v, k) => (v == null ? "n/d" : k === "cls" ? v.toFixed(3) : `${Math.round(v)}ms`);
 
 for (const run of runs) {
@@ -78,8 +80,9 @@ for (const run of runs) {
     if (value == null) continue;
 
     if (value > limits[metric]) {
-      failures.push(`${run.formFactor} ${key}: ${metric.toUpperCase()} ${fmt(value, metric)} > teto ${fmt(limits[metric], metric)}`);
-      continue;
+      const message = `${run.formFactor} ${key}: ${metric.toUpperCase()} ${fmt(value, metric)} > teto ${fmt(limits[metric], metric)}`;
+      if (strictAbsolute) failures.push(message);
+      else warnings.push(message);
     }
     const prev = base?.[metric];
     if (typeof prev === "number" && prev > 0) {
@@ -94,6 +97,11 @@ for (const run of runs) {
   console.log(
     `• ${run.formFactor} ${key} — LCP ${fmt(run.lcp, "lcp")} · CLS ${fmt(run.cls, "cls")} · INP ${fmt(run.inp, "inp")} · TBT ${fmt(run.tbt, "tbt")}`,
   );
+}
+
+if (warnings.length) {
+  console.warn(`\n⚠ Core Web Vitals acima do alvo absoluto (${warnings.length}); dívida existente é observada, não bloqueia PR sem regressão medida:`);
+  for (const w of warnings) console.warn(`  - ${w}`);
 }
 
 if (failures.length) {

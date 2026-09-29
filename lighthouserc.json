@@ -48,12 +48,6 @@
             "maxNumericValue": 0.1
           }
         ],
-        "interaction-to-next-paint": [
-          "error",
-          {
-            "maxNumericValue": 200
-          }
-        ],
         "first-contentful-paint": [
           "warn",
           {

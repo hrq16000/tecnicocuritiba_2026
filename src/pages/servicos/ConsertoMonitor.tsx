@@ -8,6 +8,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { ImageObjectSchema } from "@/components/ImageObjectSchema";
 import { ServiceGallery, GalleryItem } from "@/components/ServiceGallery";
 import ServiceOperationalSpec from "@/components/ServiceOperationalSpec";
+import SiteBaseSchema from "@/components/SiteBaseSchema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -166,6 +167,7 @@ const ConsertoMonitor = () => {
           { name: "Conserto de monitor", path: PATH },
         ]}
       />
+      <SiteBaseSchema />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <Header />
