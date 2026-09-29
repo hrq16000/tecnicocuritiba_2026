@@ -154,6 +154,7 @@ jobs:
         run: node scripts/report-faq-parity.mjs
       - name: Upload relatório de paridade FAQ
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: faq-parity
@@ -179,6 +180,7 @@ jobs:
 
       - name: Upload titles-dump.csv on failure (seo-title-dedup)
         if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: titles-dump
@@ -186,6 +188,7 @@ jobs:
           if-no-files-found: ignore
       - name: Upload Playwright traces/screenshots on failure
         if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: playwright-artifacts
@@ -222,6 +225,7 @@ jobs:
         run: npx playwright test e2e/a11y-axe.spec.ts --reporter=list 2>&1 | tee a11y-report.log
       - name: Upload a11y report
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: a11y-report
@@ -318,6 +322,7 @@ jobs:
         run: npm run cwv:guard
       - name: Upload Lighthouse reports
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-reports
@@ -352,6 +357,7 @@ jobs:
         run: node scripts/audit-jsonld-obrigado-problemas.mjs | tee jsonld-audit.log
       - name: Upload JSON-LD audit log
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: jsonld-audit
@@ -386,6 +392,7 @@ jobs:
         run: node scripts/validate-ga4-utms.mjs | tee ga4-utms.log
       - name: Upload GA4/UTM log
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ga4-utms
@@ -424,6 +431,7 @@ jobs:
         run: node scripts/lh-heavy-posts.mjs
       - name: Upload Lighthouse heavy-posts artifacts (JSON + MD + HTML)
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: lh-heavy-posts
@@ -465,6 +473,7 @@ jobs:
         run: node scripts/lh-local-pages.mjs
       - name: Upload relatório de performance local
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: perf-local-pages
@@ -500,6 +509,7 @@ jobs:
         run: node scripts/check-images-404.mjs | tee images-404.log
       - name: Upload images-404 log
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: images-404
@@ -515,6 +525,7 @@ jobs:
       contents: read
     steps:
       - name: Baixar artefatos de perf/imagens
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           path: artifacts
