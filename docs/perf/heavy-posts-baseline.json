@@ -1,0 +1,122 @@
+{
+  "alto-falante-queimado-curitiba": {
+    "mobile": {
+      "lcp": 6693.6705,
+      "bytes": 948037,
+      "score": 0.56
+    },
+    "desktop": {
+      "lcp": 1622.6400000000003,
+      "bytes": 986079,
+      "score": 0.91
+    }
+  },
+  "por-que-conserto-placa-mae-custa-caro-curitiba": {
+    "mobile": {
+      "lcp": 6867.031499999999,
+      "bytes": 948288,
+      "score": 0.61
+    },
+    "desktop": {
+      "lcp": 1517.64,
+      "bytes": 985687,
+      "score": 0.93
+    }
+  },
+  "tv-listras-horizontais-verticais-conserto-curitiba": {
+    "mobile": {
+      "lcp": 7049.456,
+      "bytes": 947634,
+      "score": 0.59
+    },
+    "desktop": {
+      "lcp": 1571.9474999999998,
+      "bytes": 985845,
+      "score": 0.93
+    }
+  },
+  "listras-tela-celular-apos-atualizacao-curitiba": {
+    "mobile": {
+      "lcp": 6585.369000000001,
+      "bytes": 948118,
+      "score": 0.59
+    },
+    "desktop": {
+      "lcp": 1613.6725000000001,
+      "bytes": 985990,
+      "score": 0.91
+    }
+  },
+  "conserto-computador-domicilio-curitiba": {
+    "mobile": {
+      "lcp": 7083.685,
+      "bytes": 948055,
+      "score": 0.57
+    },
+    "desktop": {
+      "lcp": 1549.9120000000003,
+      "bytes": 985634,
+      "score": 0.93
+    }
+  },
+  "impressora-erro-conexao-usb-wifi-curitiba": {
+    "mobile": {
+      "lcp": 7025.952000000001,
+      "bytes": 955934,
+      "score": 0.61
+    },
+    "desktop": {
+      "lcp": 1578.6310000000003,
+      "bytes": 956158,
+      "score": 0.93
+    }
+  },
+  "notebook-nao-conecta-bluetooth-curitiba": {
+    "mobile": {
+      "lcp": 6665.753000000001,
+      "bytes": 948130,
+      "score": 0.6
+    },
+    "desktop": {
+      "lcp": 1673.618,
+      "bytes": 948131,
+      "score": 0.91
+    }
+  },
+  "computador-desligando-apos-segundos-curitiba": {
+    "mobile": {
+      "lcp": 6924.046,
+      "bytes": 947883,
+      "score": 0.62
+    },
+    "desktop": {
+      "lcp": 1577.4654999999998,
+      "bytes": 947573,
+      "score": 0.91
+    }
+  },
+  "computador-com-cheiro-de-queimado-curitiba": {
+    "mobile": {
+      "lcp": 6780.916,
+      "bytes": 948136,
+      "score": 0.59
+    },
+    "desktop": {
+      "lcp": 1552.348,
+      "bytes": 948143,
+      "score": 0.93
+    }
+  },
+  "impressora-cartucho-nao-reconhece-curitiba": {
+    "mobile": {
+      "lcp": 7002.548499999999,
+      "bytes": 937277,
+      "score": 0.62
+    },
+    "desktop": {
+      "lcp": 1665.7245000000003,
+      "bytes": 955934,
+      "score": 0.91
+    }
+  }
+}
