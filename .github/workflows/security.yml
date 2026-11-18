@@ -84,11 +84,44 @@ jobs:
       # PR gate scans the current tree, not historical commits. Historical leaks
       # remain visible via the scheduled report below, without blocking unrelated fixes.
       - name: Gitleaks current tree
+        id: gitleaks
+        continue-on-error: true
         run: |
           docker run --rm \
             -v "$PWD:/repo" \
             ghcr.io/gitleaks/gitleaks@sha256:b109bc5f8f76a38196a3e413704fc5b9e3c32360bce4e4b603bd6f45b3721dbb \
-            detect --source=/repo --no-git --redact --exit-code=1
+            detect --source=/repo --no-git --redact --verbose \
+            --report-format json --report-path /repo/gitleaks-current.json \
+            --exit-code=1
+
+      - name: Summarize Gitleaks findings (redacted)
+        if: always()
+        run: |
+          if [ -f gitleaks-current.json ]; then
+            node - <<'NODE'
+          const fs = require("node:fs");
+          const findings = JSON.parse(fs.readFileSync("gitleaks-current.json", "utf8"));
+          console.log(`Gitleaks findings: ${findings.length}`);
+          for (const f of findings) {
+            console.log(`- ${f.File || "?"}:${f.StartLine || "?"} · ${f.RuleID || "unknown"}`);
+          }
+          NODE
+          fi
+
+      - name: Upload Gitleaks report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-current-report
+          path: gitleaks-current.json
+          retention-days: 14
+
+      - name: Enforce Gitleaks current tree
+        if: always() && steps.gitleaks.outcome == 'failure'
+        run: |
+          echo "Gitleaks encontrou segredo(s) no tree atual."
+          exit 1
 
       - name: Gitleaks history report
         if: github.event_name == 'schedule'
