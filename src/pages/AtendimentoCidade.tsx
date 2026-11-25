@@ -10,11 +10,10 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { trackCTAClick } from "@/lib/analytics";
 import { buildWhatsAppUrl } from "@/lib/whatsappMessage";
+import { NAP, napOpeningHours } from "@/lib/nap";
 import { CIDADES, SERVICOS } from "@/lib/servicoCidadeData";
 import { getBairrosByCidade } from "@/lib/atendimentoBairrosData";
 import { MessageCircle, MapPin, Clock, Shield, CheckCircle, Wrench } from "lucide-react";
-
-const WHATSAPP_NUMBER = "5541997452053";
 
 /**
  * Página programática de captação de leads por cidade da RMC.
@@ -34,7 +33,7 @@ export default function AtendimentoCidade() {
 
   if (!cidade) return <Navigate to="/servicos" replace />;
 
-  const title = `Atendimento Técnico em ${cidade.nome} | Orçamento no WhatsApp | Técnico em Curitiba`;
+  const title = `Atendimento Técnico em ${cidade.nome} | Orçamento no WhatsApp`;
   const description = `Atendimento técnico de informática em ${cidade.nome}. Domicílio, coleta ou remoto. Orçamento no WhatsApp a partir de R$ 99,99, com garantia de 90 dias.`;
   const url = `https://tecnicocuritiba.com.br/atendimento/${cidade.slug}`;
   const path = `/atendimento/${cidade.slug}`;
@@ -55,10 +54,12 @@ export default function AtendimentoCidade() {
     serviceType: "Assistência técnica de informática",
     provider: {
       "@type": "LocalBusiness",
-      name: "Técnico em Curitiba",
-      telephone: `+${WHATSAPP_NUMBER}`,
+      "@id": `${NAP.url}/#localbusiness`,
+      name: NAP.name,
+      alternateName: NAP.alternateName,
+      telephone: NAP.phone,
       areaServed: { "@type": "City", name: cidade.nome },
-      address: { "@type": "PostalAddress", addressLocality: "Curitiba", addressRegion: "PR", addressCountry: "BR" },
+      openingHoursSpecification: napOpeningHours(),
     },
     areaServed: { "@type": "City", name: cidade.nome },
     url,

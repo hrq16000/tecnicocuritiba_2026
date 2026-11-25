@@ -10,11 +10,10 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { trackCTAClick } from "@/lib/analytics";
 import { buildWhatsAppUrl } from "@/lib/whatsappMessage";
+import { NAP, napOpeningHours } from "@/lib/nap";
 import { CIDADES, SERVICOS } from "@/lib/servicoCidadeData";
 import { getBairro } from "@/lib/atendimentoBairrosData";
 import { MessageCircle, MapPin, Clock, Shield, CheckCircle, Wrench } from "lucide-react";
-
-const WHATSAPP_NUMBER = "5541997452053";
 
 /**
  * /atendimento/:cidade/:bairro — captação hiperlocal.
@@ -44,7 +43,7 @@ export default function AtendimentoCidadeBairro() {
   }
 
   const localLabel = `${bairro.nome}, ${cidade.nome}`;
-  const title = `Atendimento Técnico em ${bairro.nome}, ${cidade.nome} | WhatsApp | Técnico em Curitiba`;
+  const title = `Atendimento Técnico em ${bairro.nome}, ${cidade.nome} | WhatsApp`;
   const description = `Suporte de informática no bairro ${bairro.nome} (${cidade.nome}). Domicílio, coleta ou remoto, orçamento no WhatsApp a partir de R$ 99,99 com garantia de 90 dias.`;
   const path = `/atendimento/${cidade.slug}/${bairro.slug}`;
   const url = `https://tecnicocuritiba.com.br${path}`;
@@ -72,18 +71,12 @@ export default function AtendimentoCidadeBairro() {
     serviceType: "Assistência técnica de informática",
     provider: {
       "@type": "LocalBusiness",
-      name: "Técnico em Curitiba",
-      telephone: `+${WHATSAPP_NUMBER}`,
-      areaServed: {
-        "@type": "Place",
-        name: localLabel,
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: cidade.nome,
-          addressRegion: "PR",
-          addressCountry: "BR",
-        },
-      },
+      "@id": `${NAP.url}/#localbusiness`,
+      name: NAP.name,
+      alternateName: NAP.alternateName,
+      telephone: NAP.phone,
+      areaServed: { "@type": "Place", name: localLabel },
+      openingHoursSpecification: napOpeningHours(),
     },
     areaServed: { "@type": "Place", name: localLabel },
     url,

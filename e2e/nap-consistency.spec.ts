@@ -60,11 +60,11 @@ for (const route of ROUTES) {
       expect(p, `telefone divergente em ${route}: ${p}`).toBe(NAP_PHONE_E164);
     }
 
-    // 2) Negócio de área de atendimento: não anunciar loja física.
-    // O contrato explícito do Footer reserva endereço ao nó Organization.
+    // 2) Negócio de área de atendimento: não anunciar endereço físico não confirmado.
     const lb = nodes.filter((n) => hasType(n, "LocalBusiness"));
     expect(lb.length, `LocalBusiness ausente em ${route}`).toBeGreaterThan(0);
     for (const n of lb) {
+      expect(n.name, `nome comercial divergente em ${route}`).toBe(NAP.name);
       expect(n.address, `endereço físico indevido em ${route}`).toBeUndefined();
       expect(JSON.stringify(n.areaServed)).toContain(NAP.city);
       expect(n.telephone).toBe(NAP_PHONE_E164);
@@ -78,6 +78,11 @@ for (const route of ROUTES) {
       }
       expect(n.areaServed, `LocalBusiness sem areaServed em ${route}`).toBeTruthy();
       if (n.foundingDate) expect(String(n.foundingDate)).toBe(NAP.foundingDate);
+    }
+
+    // Organização também não pode publicar endereço físico não confirmado.
+    for (const org of nodes.filter((n) => hasType(n, "Organization"))) {
+      expect(org.address, `endereço físico indevido em Organization em ${route}`).toBeUndefined();
     }
 
     // 3) Todo botão/link de contato aponta para o mesmo número.

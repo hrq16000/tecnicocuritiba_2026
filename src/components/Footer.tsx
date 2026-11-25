@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { NAP, napContactPoint, napOpeningHours, napPostalAddress } from "@/lib/nap";
+import { NAP, napContactPoint, napOpeningHours } from "@/lib/nap";
 import { MapPin, MessageCircle, Users, ArrowRight, Clock } from "lucide-react";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { useMemo } from "react";
@@ -150,12 +150,6 @@ const localBusinessSchema = {
   priceRange: "$$",
   currenciesAccepted: "BRL",
   paymentAccepted: "Cash, Credit Card, Debit Card, PIX",
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: NAP.geo.lat,
-    longitude: NAP.geo.lng,
-  },
-  hasMap: `https://www.google.com/maps/search/?api=1&query=${NAP.geo.lat},${NAP.geo.lng}`,
   areaServed: areaServedCities,
   openingHoursSpecification: napOpeningHours(),
   contactPoint: napContactPoint(),
@@ -196,7 +190,6 @@ const organizationSchema = {
   },
   image: { "@id": "https://tecnicocuritiba.com.br/#logo" },
   telephone: NAP.phone,
-  address: napPostalAddress(),
   contactPoint: napContactPoint(),
   areaServed: areaServedCities,
   foundingDate: NAP.foundingDate,
