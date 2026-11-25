@@ -1,4 +1,5 @@
 import { test, expect, type ConsoleMessage } from "@playwright/test";
+import { stubConsoleDependencies } from "./utils/stubConsoleDependencies";
 
 /**
  * Gate de console: percorrer a triagem (PF e PJ) não pode produzir NENHUM
@@ -23,6 +24,7 @@ const VIEWPORTS = [
 
 for (const vp of VIEWPORTS) {
   test(`triagem PF x PJ sem erros de console (${vp.name})`, async ({ page }) => {
+    await stubConsoleDependencies(page);
     const errors: string[] = [];
     page.on("console", (msg: ConsoleMessage) => {
       if (msg.type() !== "error") return;

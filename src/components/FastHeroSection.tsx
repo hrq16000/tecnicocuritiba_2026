@@ -3,9 +3,9 @@ import { GeoCityChip } from "@/components/GeoCityChip";
 
 const WHATSAPP_NUMBER = "5541997452053";
 const WHATSAPP_MESSAGE =
-  "Olá! Preciso de suporte técnico em Curitiba. Pode me passar um orçamento?";
+  "Olá! Vim do site tecnicocuritiba.com.br. Preciso de suporte técnico em Curitiba. Pode me passar um orçamento?";
 const SCHEDULE_MESSAGE =
-  "Olá! Quero agendar um atendimento técnico. Pode me ajudar com horários disponíveis?";
+  "Olá! Vim do site tecnicocuritiba.com.br. Quero agendar um atendimento técnico. Pode me ajudar com horários disponíveis?";
 
 const trackHeroWhatsApp = () => {
   import("@/lib/analytics").then(({ trackCTAClick }) => trackCTAClick("whatsapp", "hero_primary"));

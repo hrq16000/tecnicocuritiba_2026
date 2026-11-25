@@ -43,10 +43,14 @@ test.describe("SEO: <title> único por URL", () => {
 
     for (const url of sampled) {
       const res = await page.goto(abs(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
-      if (!res || !res.ok()) continue;
-      // Aguarda react-helmet-async escrever o <title>.
-      await page.waitForFunction(() => !!document.title && document.title !== "", { timeout: 5000 }).catch(() => null);
+      expect(res?.ok(), `HTTP inválido em ${url}`).toBe(true);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      // Um title não vazio pode ser apenas o fallback estático da home.
+      if (url !== "/") {
+        await expect(page).not.toHaveTitle("Técnico de Informática em Curitiba | Conserto de PC e Notebook");
+      }
       const title = await page.title();
+      expect(title.trim().length, `title vazio em ${url}`).toBeGreaterThan(0);
       rows.push({ url, title });
     }
 

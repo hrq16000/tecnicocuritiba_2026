@@ -69,8 +69,8 @@ test.describe("/termos-e-condicoes — schema, canonical, single H1, sitemap con
     await expect(page).toHaveTitle(/Termos.*Condi[çc]/i);
 
     const description = await page.locator('head meta[name="description"]').getAttribute("content");
-    expect(description || "").toMatch(/R\$\s?90/);
-    expect(description || "").toMatch(/R\$\s?99/);
+    expect(description || "").toMatch(/R\$\s?99,99/);
+    expect(description || "").toMatch(/R\$\s?300/);
 
     const ogTitle = await page.locator('head meta[property="og:title"]').getAttribute("content");
     const twTitle = await page.locator('head meta[name="twitter:title"]').getAttribute("content");

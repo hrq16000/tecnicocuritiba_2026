@@ -170,6 +170,9 @@ export default function AtendimentoCidadeBairro() {
               data-wa-source={`atendimento_${cidade.slug}_${bairro.slug}`}
               data-service="atendimento_bairro"
               data-neighborhood={`${cidade.slug}/${bairro.slug}`}
+              data-city={cidade.slug}
+              data-category={category}
+              data-symptom-slug={symptomSlug}
             >
               <a
                 href={waHref}
@@ -256,6 +259,9 @@ export default function AtendimentoCidadeBairro() {
               data-wa-source={`atendimento_${cidade.slug}_${bairro.slug}_final`}
               data-service="atendimento_bairro"
               data-neighborhood={`${cidade.slug}/${bairro.slug}`}
+              data-city={cidade.slug}
+              data-category={category}
+              data-symptom-slug={symptomSlug}
             >
               <a
                 href={waHref}

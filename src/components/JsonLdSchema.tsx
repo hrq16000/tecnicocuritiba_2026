@@ -145,7 +145,7 @@ const navigationSchema = {
   ]
 };
 
-export const JsonLdSchema = () => {
+export const JsonLdSchema = ({ includeHomeWebPage = true }: { includeHomeWebPage?: boolean } = {}) => {
   useEffect(() => {
     // Limpa schemas antigos
     document.querySelectorAll('script[data-schema="true"]').forEach(s => s.remove());
@@ -155,7 +155,7 @@ export const JsonLdSchema = () => {
       ['ld-faqpage', faqSchema],
       ['ld-website', websiteSchema],
       ['ld-organization', organizationSchema],
-      ['ld-webpage', webPageSchema],
+      ...(includeHomeWebPage ? [['ld-webpage', webPageSchema] as [string, Record<string, unknown>]] : []),
       ['ld-itemlist-services', serviceItemListSchema],
       ['ld-navigation', navigationSchema],
     ];
@@ -169,7 +169,7 @@ export const JsonLdSchema = () => {
     return () => {
       document.querySelectorAll('script[data-schema="true"]').forEach(s => s.remove());
     };
-  }, []);
+  }, [includeHomeWebPage]);
 
   return null;
 };

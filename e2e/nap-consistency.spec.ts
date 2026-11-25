@@ -38,14 +38,17 @@ const collectPhones = (node: unknown, acc: string[] = []): string[] => {
 
 for (const route of ROUTES) {
   test(`NAP consistente em ${route}`, async ({ page }) => {
-    await page.goto(route);
+    await page.goto(`${route}?entry_popup=0`);
     await page.waitForLoadState("networkidle");
-    // A home injeta LocalBusiness/Organization via footer lazy-mounted.
-    for (let i = 0; i < 6; i++) {
-      await page.mouse.wheel(0, 3000);
-      await page.waitForTimeout(400);
+    // A home monta o rodapé sob demanda; chegar ao fim real do documento
+    // em vez de presumir uma altura fixa para as seções lazy-loaded.
+    await expect(page.locator("h1")).toHaveCount(1);
+    if (route === "/") {
+      await expect.poll(async () => {
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        return page.locator("footer").count();
+      }, { timeout: 15000, message: "rodapé lazy deve montar na home" }).toBe(1);
     }
-    await page.waitForTimeout(1500);
     await expect(page.locator("footer")).toHaveCount(1);
 
     const nodes = await graph(page);
@@ -57,12 +60,14 @@ for (const route of ROUTES) {
       expect(p, `telefone divergente em ${route}: ${p}`).toBe(NAP_PHONE_E164);
     }
 
-    // 2) LocalBusiness carrega endereço e horários da fonte única.
+    // 2) Negócio de área de atendimento: não anunciar loja física.
+    // O contrato explícito do Footer reserva endereço ao nó Organization.
     const lb = nodes.filter((n) => hasType(n, "LocalBusiness"));
+    expect(lb.length, `LocalBusiness ausente em ${route}`).toBeGreaterThan(0);
     for (const n of lb) {
-      expect(n.address?.addressLocality).toBe(NAP.city);
-      expect(n.address?.addressRegion).toBe(NAP.region);
-      expect(n.address?.addressCountry).toBe(NAP.country);
+      expect(n.address, `endereço físico indevido em ${route}`).toBeUndefined();
+      expect(JSON.stringify(n.areaServed)).toContain(NAP.city);
+      expect(n.telephone).toBe(NAP_PHONE_E164);
       const hours = Array.isArray(n.openingHoursSpecification)
         ? n.openingHoursSpecification
         : [n.openingHoursSpecification].filter(Boolean);

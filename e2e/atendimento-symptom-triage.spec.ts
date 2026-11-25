@@ -56,13 +56,13 @@ for (const c of SYMPTOM_CASES) {
     expect(decoded).toContain(c.expectSymptom);
 
     // Tracking: clicar o botão e checar dataLayer
-    await hero.evaluate((el) => el.setAttribute("target", "_self"));
-    await hero.click({ noWaitAfter: true });
+    await hero.click();
+    await expect(page.getByRole("dialog", { name: /Triagem —/ })).toBeVisible();
     const events = await page.evaluate(
       () => (window as unknown as { dataLayer: unknown[][] }).dataLayer || [],
     );
     const ctaEvent = events.find(
-      (e) => Array.isArray(e) && e[0] === "event" && e[1] === "cta_click",
+      (e) => e && e[0] === "event" && e[1] === "cta_click",
     );
     expect(ctaEvent, "cta_click emitido").toBeTruthy();
     const payload = (ctaEvent as unknown[])[2] as Record<string, unknown>;

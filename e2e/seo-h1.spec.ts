@@ -49,6 +49,9 @@ test.describe("SEO: cada URL indexável tem exatamente 1 <h1>", () => {
         failures.push({ url, count: -1 });
         continue;
       }
+      // O preview local pode entregar o shell sem barra final; este teste
+      // mede o DOM visível, não o H1 de noscript. Os gates HTTP permanecem.
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       const count = await page.locator("h1").count();
       if (count !== 1) failures.push({ url, count });
     }

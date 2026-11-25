@@ -132,7 +132,7 @@ const SuporteEmpresas = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageSEO title="Suporte de TI para Empresas em Curitiba | Contratos, M365 e Backup" description="Suporte de TI para empresas em Curitiba: atendimento avulso ou recorrente, Microsoft 365, Google Workspace, backup, servidores e infraestrutura de rede. Nota fiscal e pagamento faturado." path="/suporte-empresas" breadcrumbs={BREADCRUMBS} />
-      <JsonLdSchema />
+      <JsonLdSchema includeHomeWebPage={false} />
       <BusinessPageSchema
         id="suporte-empresas"
         path="/suporte-empresas"

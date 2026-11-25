@@ -149,6 +149,9 @@ export default function AtendimentoCidade() {
               data-wa-source={`atendimento_${cidade.slug}`}
               data-service="atendimento_cidade"
               data-neighborhood={cidade.slug}
+              data-city={cidade.slug}
+              data-category={category}
+              data-symptom-slug={symptomSlug}
             >
               <a
                 href={waHref}
@@ -261,6 +264,9 @@ export default function AtendimentoCidade() {
               data-wa-source={`atendimento_${cidade.slug}_final`}
               data-service="atendimento_cidade"
               data-neighborhood={cidade.slug}
+              data-city={cidade.slug}
+              data-category={category}
+              data-symptom-slug={symptomSlug}
             >
               <a
                 href={waHref}

@@ -27,7 +27,11 @@ async function collectJsonLd(page: import("@playwright/test").Page) {
 for (const route of ROUTES) {
   test(`JSON-LD presente em ${route}`, async ({ page }) => {
     await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(600);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect.poll(async () => {
+      const schemas = await collectJsonLd(page);
+      return JSON.stringify(schemas).includes('"BreadcrumbList"');
+    }, { message: `BreadcrumbList ausente em ${route}` }).toBe(true);
     const blocks = await collectJsonLd(page);
     expect(blocks.length, `${route} sem JSON-LD`).toBeGreaterThan(0);
 
