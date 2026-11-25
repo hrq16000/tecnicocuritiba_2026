@@ -15,8 +15,8 @@ export const NAP_PHONE_DIGITS = "5541997452053";
 
 export const NAP = {
   /** Razão social / nome do negócio exibido em LocalBusiness e Organization. */
-  name: "Técnico em Curitiba — Assistência Técnica em Informática",
-  alternateName: "Técnico em Curitiba",
+  name: "Técnico em Curitiba",
+  alternateName: "Técnico em Curitiba — Assistência Técnica em Informática",
   legalName: "Técnico em Curitiba — Assistência Técnica em Informática",
   street: "Atendimento a domicílio e coleta",
   city: "Curitiba",
