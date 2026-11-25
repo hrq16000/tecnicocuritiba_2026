@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { expectFunnelStep, fillFunnelContext, advanceFromModality } from "./utils/funnelSteps";
 
 const HOME = "/";
 const UTM_QS = "?entry_popup=0&utm_source=ci&utm_medium=cpc&utm_campaign=funnel_v3_e2e&gclid=CI_GCLID_777";
@@ -27,6 +28,7 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
   test.beforeEach(async ({ page, context }) => {
     await installGtagSpy(page);
     await context.route("https://wa.me/**", (route) => route.fulfill({ status: 204, body: "" }));
+    await context.route("https://www.googletagmanager.com/gtag/js?**", route => route.fulfill({ contentType: "application/javascript", body: "" }));
   });
 
   test("branch TV 'não liga' exige aceite de Coleta com R$ 300", async ({ page }) => {
@@ -36,10 +38,10 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
 
     await dialog.getByRole("button", { name: /^TV$/i }).first().click();
 
-    await expect(dialog.getByText(/Qual é o problema/i)).toBeVisible();
+    await expectFunnelStep(dialog, 2);
     await dialog.getByRole("button", { name: /^Samsung$/i }).first().click();
     await dialog.getByRole("button", { name: /^Não liga$/i }).first().click();
-    await dialog.getByRole("button", { name: /Continuar/i }).click();
+    await fillFunnelContext(dialog);
 
     await expect(dialog.getByText(/Coleta e Entrega/i).first()).toBeVisible();
     await expect(dialog.getByText(/R\$ 300/i).first()).toBeVisible();
@@ -55,9 +57,11 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
     await dialog.getByRole("button", { name: /PC \/ Notebook/i }).click();
     await dialog.getByRole("button", { name: /^Dell$/ }).click();
     await dialog.getByRole("button", { name: /Lento \/ travando/i }).click();
-    await dialog.getByRole("button", { name: /Continuar/i }).click();
+    await fillFunnelContext(dialog);
+    await advanceFromModality(dialog, false);
 
     await expect(dialog.getByText(/Triagem completa/i)).toBeVisible();
+    await dialog.getByText(/Próximo passo no WhatsApp/i).click();
     await expect(dialog.getByText(/sem áudio/i)).toBeVisible();
     const submit = dialog.getByRole("button", { name: /Agendar agora/i });
     await expect(submit).toBeDisabled();
@@ -72,7 +76,8 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible({ timeout: 5000 });
-    await expect(dialog.getByText(/Triagem antes do atendimento/i)).toBeVisible();
+    await expectFunnelStep(dialog, 1);
+    await expect(dialog.getByText(/WhatsApp humano abre/i)).toBeVisible();
 
     const events = await page.evaluate(() => (window as unknown as { __waFunnelEvents?: Array<{ name: string; payload: Record<string, unknown> }> }).__waFunnelEvents || []);
     const opened = events.find((e) => e.name === "wa_funnel_open");
@@ -91,16 +96,17 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
     await dialog.getByPlaceholder(/Ex: micro-ondas/i).fill("Micro-ondas Consul");
     await dialog.getByPlaceholder(/Conte o defeito/i).fill("Não esquenta desde ontem, faz barulho estranho.");
     await dialog.getByRole("button", { name: /^1–3 anos$/ }).click();
-    await expect(nextBtn).toBeEnabled();
+    await expectFunnelStep(dialog, 3);
   });
 
   test("GA4 dispara wa_funnel_open com UTM payload", async ({ page }) => {
     await page.goto(`${HOME}${UTM_QS}`);
     await page.waitForLoadState("networkidle");
     await openFunnel(page);
-    const calls = await page.evaluate(() => (window as unknown as { __gtagCalls: unknown[][] }).__gtagCalls);
+    const calls = await page.evaluate(() => (window as unknown as { dataLayer: unknown[][] }).dataLayer);
     const open = calls.find((c) => c[0] === "event" && c[1] === "wa_funnel_open");
     expect(open).toBeTruthy();
+    expect(open?.[2]).toMatchObject({ utm_source: "ci", utm_medium: "cpc", utm_campaign: "funnel_v3_e2e" });
   });
 
   test("link 'Termos e Condições' resolve a rota pública /termos-e-condicoes", async ({ page }) => {

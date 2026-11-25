@@ -36,26 +36,19 @@ for (const vp of VIEWPORTS) {
     });
 
     await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE}/?entry_popup=0`, { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
 
-    // Abre o funil pelo primeiro CTA disponível.
-    const cta = page
-      .locator('[data-cta-location] button, button:has-text("Agendar"), button:has-text("WhatsApp")')
-      .first();
-    if (await cta.count()) {
-      await cta.click({ noWaitAfter: true }).catch(() => {});
-      await page.waitForTimeout(600);
-
-      // Percorre opções da etapa atual (PF/PJ ou equipamento) sem enviar.
-      const options = page.getByRole("button").filter({ hasNotText: /fechar|voltar/i });
-      const n = Math.min(await options.count(), 4);
-      for (let i = 0; i < n; i++) {
-        await options.nth(i).click({ noWaitAfter: true }).catch(() => {});
-        await page.waitForTimeout(250);
-      }
-      await page.keyboard.press("Escape").catch(() => {});
-    }
+    // CTA real e passos explícitos; não clicar arbitrariamente ou engolir falhas.
+    await page.getByTestId("whatsapp-float").click();
+    const dialog = page.getByRole("dialog", { name: /Triagem —/ });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "PC / Notebook", exact: true }).click();
+    await dialog.getByRole("button", { name: "Dell", exact: true }).click();
+    await dialog.getByRole("button", { name: "Lento / travando", exact: true }).click();
+    await expect(dialog.getByText("3. Conte um pouco mais", { exact: false })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
 
     // Rota B2B (PJ) — mesma exigência de console limpo.
     await page.goto(`${BASE}/suporte-empresas`, { waitUntil: "domcontentloaded" });

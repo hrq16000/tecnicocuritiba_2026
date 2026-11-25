@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { expectFunnelStep, fillFunnelContext, advanceFromModality } from "./utils/funnelSteps";
 
 /**
  * Regressão mobile:
@@ -12,7 +13,7 @@ const CASES: Array<{ eq: RegExp; marca?: RegExp; sintoma: RegExp; label: string 
   { eq: /PC \/ Notebook/i, marca: /^Dell$/, sintoma: /Lento \/ travando/i, label: "pc-lento" },
   { eq: /PC \/ Notebook/i, marca: /^HP$/, sintoma: /Não liga/i, label: "pc-nao-liga" },
   { eq: /^TV$/i, marca: /^Samsung$/, sintoma: /Não liga/i, label: "tv-nao-liga" },
-  { eq: /Celular/i, marca: /^Apple/i, sintoma: /Tela quebrada/i, label: "celular-tela" },
+  { eq: /Celular/i, marca: /^iPhone \(Apple\)$/, sintoma: /Tela trincada \/ quebrada/i, label: "celular-tela" },
   { eq: /^Outro$/i, sintoma: /./, label: "outro-branch" },
 ];
 
@@ -40,45 +41,26 @@ test.describe("Mobile — funil nunca pula etapa 3", () => {
       await page.evaluate(() => {
         window.dispatchEvent(new CustomEvent("wa-funnel:open", { detail: { location: "test" } }));
       });
-      const dialog = page.getByRole("dialog");
+      const dialog = page.getByRole("dialog", { name: /Triagem —/ });
       await expect(dialog).toBeVisible({ timeout: 5000 });
 
-      // Etapa 0/1 — equipamento + (marca) + sintoma
+      await expectFunnelStep(dialog, 1);
       await dialog.getByRole("button", { name: c.eq }).first().click();
-      if (c.marca) {
-        await dialog.getByRole("button", { name: c.marca }).first().click().catch(() => {});
-      }
-      // Sintoma / branch "outro" usa inputs.
+      await expectFunnelStep(dialog, 2);
       if (c.label === "outro-branch") {
-        // Preenche campos livres do branch "outro".
-        const inputs = dialog.locator("input[type='text'], textarea");
-        const n = await inputs.count();
-        for (let i = 0; i < Math.min(n, 3); i++) {
-          await inputs.nth(i).fill(`teste-${i}`).catch(() => {});
-        }
+        await dialog.getByPlaceholder(/Ex: micro-ondas/i).fill("Micro-ondas Consul");
+        await dialog.getByPlaceholder(/Conte o defeito/i).fill("Não esquenta desde ontem.");
+        await dialog.getByRole("button", { name: "1–3 anos", exact: true }).click();
       } else {
-        await dialog.getByRole("button", { name: c.sintoma }).first().click().catch(() => {});
+        await dialog.getByRole("button", { name: c.marca! }).first().click();
+        await dialog.getByRole("button", { name: c.sintoma }).first().click();
       }
 
-      // ✅ ETAPA 3 OBRIGATÓRIA: verifica presença de pelo menos uma pergunta
-      // de contexto detalhado ("quando começou / aconteceu", "com que frequência",
-      // "já tentou", ou "qual a urgência").
-      const contextRegex = /(Quando começou|Quando aconteceu|frequência|Já tentou|Reiniciei|urgência|Próximas 72)/i;
-      await expect(dialog.getByText(contextRegex).first()).toBeVisible({ timeout: 5000 });
-
-      // Preenche etapa 3 clicando na primeira opção de cada grupo visível.
-      const chips = dialog.locator("button:visible").filter({ hasText: /Hoje|Só às vezes|Reiniciei|72 horas|Sempre|Ontem/i });
-      const cCount = await chips.count();
-      for (let i = 0; i < cCount; i++) {
-        await chips.nth(i).click().catch(() => {});
-      }
-
-      // Continua e conclui.
-      const cont = dialog.getByRole("button", { name: /Continuar/i });
-      if (await cont.count()) await cont.first().click().catch(() => {});
-
-      const aceitar = dialog.getByLabel(/valor mínimo/i);
-      if (await aceitar.count()) await aceitar.check().catch(() => {});
+      // Confirma que etapa 3 é visitada e preenchida antes da modalidade.
+      await fillFunnelContext(dialog);
+      const requiresColeta = ["pc-nao-liga", "tv-nao-liga", "celular-tela"].includes(c.label);
+      await advanceFromModality(dialog, requiresColeta);
+      await dialog.getByRole("checkbox", { name: /valor mínimo/i }).check();
 
       const submit = dialog.getByRole("button", { name: /Agendar agora|Abrindo WhatsApp/i });
       await expect(submit).toBeEnabled({ timeout: 5000 });
