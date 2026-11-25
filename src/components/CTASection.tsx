@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { trackCTAClick } from "@/lib/analytics";
 
 const WHATSAPP_NUMBER = "5541997452053";
-const WHATSAPP_MESSAGE = "Olá! Preciso de suporte técnico.";
+const WHATSAPP_MESSAGE = "Olá! Vim do site tecnicocuritiba.com.br. Preciso de suporte técnico.";
 
 export const CTASection = () => {
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;

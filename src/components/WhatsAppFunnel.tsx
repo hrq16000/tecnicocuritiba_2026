@@ -720,7 +720,7 @@ export const WhatsAppFunnel = () => {
                       : "border-border bg-card hover:border-primary/60"
                   }`}
                 >
-                  <p className="text-xl leading-none">{b.emoji}</p>
+                  <p aria-hidden="true" className="text-xl leading-none">{b.emoji}</p>
                   <p className="text-[13px] font-semibold mt-1">{b.label}</p>
                 </button>
               ))}

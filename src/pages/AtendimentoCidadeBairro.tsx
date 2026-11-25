@@ -68,6 +68,7 @@ export default function AtendimentoCidadeBairro() {
   const serviceLd = {
     "@context": "https://schema.org",
     "@type": "Service",
+    name: `Assistência técnica de informática em ${localLabel}`,
     serviceType: "Assistência técnica de informática",
     provider: {
       "@type": "LocalBusiness",

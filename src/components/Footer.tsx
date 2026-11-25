@@ -247,7 +247,7 @@ export const Footer = () => {
               <span>Curitiba e Região Metropolitana, PR</span>
             </div>
             <a 
-              href="https://wa.me/5541997452053?text=Olá!%20Encontrei%20vocês%20no%20site%20e%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços."
+              href="https://wa.me/5541997452053?text=Ol%C3%A1!%20Vim%20do%20site%20tecnicocuritiba.com.br.%20Gostaria%20de%20saber%20mais%20sobre%20os%20servi%C3%A7os."
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackFooterWhatsApp("footer_primary")}
@@ -344,7 +344,7 @@ export const Footer = () => {
             <MessageCircle className="h-4 w-4 mt-0.5 text-accent flex-shrink-0" />
             <div>
               <div className="font-semibold text-white/90">WhatsApp</div>
-              <a href="https://wa.me/5541997452053?text=Ol%C3%A1!%20Preciso%20de%20suporte%20t%C3%A9cnico." target="_blank" rel="noopener noreferrer" onClick={() => trackFooterWhatsApp("footer_nap")} className="hover:text-white">Iniciar atendimento pelo WhatsApp</a>
+              <a href="https://wa.me/5541997452053?text=Ol%C3%A1!%20Vim%20do%20site%20tecnicocuritiba.com.br.%20Preciso%20de%20suporte%20t%C3%A9cnico." target="_blank" rel="noopener noreferrer" onClick={() => trackFooterWhatsApp("footer_nap")} className="hover:text-white">Iniciar atendimento pelo WhatsApp</a>
             </div>
           </div>
           <div className="flex items-start gap-2">

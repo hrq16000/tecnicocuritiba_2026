@@ -18,7 +18,7 @@ async function openFunnel(page: Page) {
   await page.evaluate(() => {
     window.dispatchEvent(new CustomEvent("wa-funnel:open", { detail: { location: "test" } }));
   });
-  const dialog = page.getByRole("dialog");
+  const dialog = page.getByRole("dialog", { name: /Triagem —/ });
   await expect(dialog).toBeVisible({ timeout: 5000 });
   return dialog;
 }

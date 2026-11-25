@@ -1,4 +1,5 @@
-import { Helmet } from "react-helmet";
+import { PageSEO } from "@/components/PageSEO";
+import { NAP, napOpeningHours } from "@/lib/nap";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -69,19 +70,20 @@ const localBusinessJsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "@id": "https://tecnicocuritiba.com.br/#localbusiness",
-  name: "Técnico em Curitiba — Assistência Técnica em Informática",
+  name: NAP.name,
   url: "https://tecnicocuritiba.com.br/",
-  telephone: "+5541997452053",
+  telephone: NAP.phone,
   areaServed: [
     { "@type": "City", name: "Curitiba" },
     { "@type": "AdministrativeArea", name: "Região Metropolitana de Curitiba" },
   ],
   priceRange: "R$ 99,99 – R$ 500",
-  sameAs: ["https://wa.me/5541997452053"],
+  sameAs: [NAP.whatsappUrl],
+  openingHoursSpecification: napOpeningHours(),
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
-    telephone: "+5541997452053",
+    telephone: NAP.phone,
     availableLanguage: ["Portuguese"],
     areaServed: "BR",
   },
@@ -94,22 +96,10 @@ const TermosCondicoes = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta name="keywords" content="conserto de placas Curitiba, diagnóstico R$ 99,99, visita técnica R$ 99,90, reparo mínimo R$ 300, orçamento grátis WhatsApp, assistência técnica Curitiba" />
-        <link rel="canonical" href={CANONICAL} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={CANONICAL} />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
-        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
-        <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
-      </Helmet>
+      <PageSEO title={title} description={description} path="/termos-e-condicoes" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }} />
 
       <Header />
 

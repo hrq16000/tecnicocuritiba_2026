@@ -23,6 +23,16 @@ export default function AtendimentoHub() {
     <>
       <PageSEO title={title} description={description} path="/atendimento" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": "https://tecnicocuritiba.com.br/atendimento#webpage",
+        url: "https://tecnicocuritiba.com.br/atendimento",
+        name: title,
+        description,
+        inLanguage: "pt-BR",
+        isPartOf: { "@id": "https://tecnicocuritiba.com.br/#website" },
+      }) }} />
       <Header />
       <main id="main-content" className="container mx-auto px-4 py-8">
         <Breadcrumbs emitSchema={false} items={[{ label: "Início", href: "/" }, { label: "Atendimento" }]} />

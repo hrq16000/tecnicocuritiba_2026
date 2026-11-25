@@ -33,7 +33,7 @@ for (const c of CASES) {
     await expect(h1).toContainText(c.nome);
 
     // CTA hero
-    const hero = page.locator(`[data-cta-location="atendimento_${c.cidade}_${c.bairro}_hero"] a`);
+    const hero = page.locator(`a[data-cta-location="atendimento_${c.cidade}_${c.bairro}_hero"]`);
     await expect(hero).toBeVisible();
 
     const href = await hero.getAttribute("href");
