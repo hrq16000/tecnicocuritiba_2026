@@ -9,6 +9,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Local CI builds only: initialize the browser SDK without a real backend or secrets.
+# Production deployment configuration is independent of this workflow.
+env:
+  VITE_SUPABASE_URL: http://127.0.0.1:54321
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-real-key
+  VITE_SUPABASE_PROJECT_ID: ci-local
+
 jobs:
   build:
     runs-on: ubuntu-24.04

@@ -71,10 +71,21 @@ async function waitForServer(url, timeoutMs = 30_000) {
 async function auditRoute(browser, url, required) {
   const errors = [];
   const page = await browser.newPage();
+  const diagnostics = new Set();
+  page.on("pageerror", (error) => {
+    if (/supabaseUrl is required|supabaseKey is required/i.test(error.message)) diagnostics.add("Supabase SDK configuration missing");
+    else diagnostics.add("Uncaught browser error: " + error.name);
+  });
+  page.on("requestfailed", (request) => {
+    if (request.resourceType() === "script" && new URL(request.url()).origin === new URL(url).origin) {
+      diagnostics.add("Local script request failed: " + new URL(request.url()).pathname);
+    }
+  });
   try {
     // Não bloqueie a auditoria por conexões persistentes de analytics/telemetria.
     // O documento precisa carregar; networkidle é apenas best-effort.
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    if (!response || !response.ok()) return [`HTTP ${response?.status() ?? "no response"}`];
     await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
     await page.waitForTimeout(500);
     // Seções lazy injetam schemas ao entrar no viewport: rola até o fim antes de coletar.
@@ -146,9 +157,13 @@ async function auditRoute(browser, url, required) {
           errors.push("BreadcrumbList.itemListElement must have >=2 entries");
       }
     }
+  } catch (error) {
+    if (diagnostics.size) console.warn(`[jsonld] ${new URL(url).pathname}: ${[...diagnostics].join("; ")}`);
+    throw error;
   } finally {
     await page.close();
   }
+  if (errors.length && diagnostics.size) errors.push(...diagnostics);
   return errors;
 }
 
