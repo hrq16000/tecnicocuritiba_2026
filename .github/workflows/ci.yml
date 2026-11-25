@@ -233,7 +233,7 @@ jobs:
       - name: Axe a11y (fail em serious/critical)
         env:
           E2E_BASE_URL: http://localhost:8080
-        run: npx playwright test e2e/a11y-axe.spec.ts --reporter=list 2>&1 | tee a11y-report.log
+        run: npx playwright test e2e/a11y-axe.spec.ts --project=chromium --reporter=list 2>&1 | tee a11y-report.log
       - name: Upload a11y report
         if: always()
         continue-on-error: true
