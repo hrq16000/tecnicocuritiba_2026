@@ -81,10 +81,10 @@ for (const route of routes) {
 
   // Coleta também em caso de timeout para produzir diagnóstico útil no CSV.
   try {
-    visible = await page.$eval("[data-faq-question], details > summary", (els) =>
+    visible = await page.$$eval("[data-faq-question], details > summary", (els) =>
       els.map((e) => e.textContent || "").filter((t) => t.trim().endsWith("?")),
     );
-    structured = await page.$eval('script[type="application/ld+json"]', (els) => {
+    structured = await page.$$eval('script[type="application/ld+json"]', (els) => {
       const qs = [];
       for (const el of els) {
         try {
