@@ -129,3 +129,69 @@ test.describe("WhatsAppFunnel v3 — mobile", () => {
     await expect(dialog.getByText(/Qual o equipamento/i)).toBeVisible();
   });
 });
+
+
+/** Entrada pública: validação isolada, sem Supabase real, analytics remoto ou WhatsApp. */
+for (const width of [390, 1440]) {
+  test.describe("Entrada — integração real " + width + "px", () => {
+    test.use({ viewport: { width, height: width === 390 ? 844 : 900 } });
+
+    test("sete categorias, teclado, sessão e pré-seleção TV", async ({ page, context, baseURL }) => {
+      const origin = new URL(baseURL || "http://localhost:8080").origin;
+      if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(origin).hostname)) {
+        throw new Error("Este teste exige preview local isolado.");
+      }
+      await context.route("**/*", route =>
+        new URL(route.request().url()).origin === origin ? route.continue() : route.abort()
+      );
+      await page.goto("/");
+      const popup = page.getByRole("dialog", { name: "Técnico em Curitiba", exact: true });
+      await expect(popup).toBeVisible({ timeout: 15000 });
+      const options = popup.locator("[data-entry-intent-option]");
+      await expect(options).toHaveCount(7);
+      for (const label of ["PC / Notebook", "TV", "Celular / Tablet", "Surface", "Som / Áudio", "Videogame", "Outro"]) {
+        await expect(popup.getByRole("button", { name: label, exact: true })).toBeVisible();
+      }
+      await expect(popup.getByRole("button", { name: "Escolha uma opção" })).toBeDisabled();
+      await expect(options.first()).toBeFocused();
+      await page.keyboard.press("Tab");
+      await expect(popup.locator(":focus")).toHaveCount(1);
+      await page.keyboard.press("Escape");
+      await expect(popup).toBeHidden();
+      await page.reload();
+      await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
+      await page.waitForTimeout(1600);
+      await expect(popup).toBeHidden();
+
+      await page.goto("/?entry_popup=1");
+      await expect(popup).toBeVisible({ timeout: 15000 });
+      await popup.getByRole("button", { name: "Fechar triagem inicial" }).click();
+      await expect(popup).toBeHidden();
+      await page.reload();
+      await expect(popup).toBeVisible({ timeout: 15000 });
+      await popup.getByRole("button", { name: "Agora não" }).click();
+      await expect(popup).toBeHidden();
+
+      await page.reload();
+      await expect(popup).toBeVisible({ timeout: 15000 });
+      await popup.getByRole("button", { name: "TV", exact: true }).click();
+      await expect(popup.getByRole("button", { name: "TV", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await popup.getByRole("button", { name: "Iniciar triagem de TV" }).click();
+      await expect(popup).toBeHidden();
+      const funnel = page.getByRole("dialog", { name: /Triagem — 2\// });
+      await expect(funnel).toBeVisible({ timeout: 10000 });
+      await expect(funnel.getByRole("button", { name: "Samsung", exact: true })).toBeVisible();
+      await expect(funnel.getByText("1. Qual o equipamento?")).toHaveCount(0);
+      await expect(page.getByRole("dialog")).toHaveCount(1);
+      const events = await page.evaluate(() => window.__waFunnelEvents || []);
+      for (const name of ["entry_intent_view", "entry_intent_select", "entry_intent_continue", "wa_funnel_preselect", "wa_funnel_open"]) {
+        expect(events.some(e => e.name === name && e.payload.cta_location === "entry_popup")).toBeTruthy();
+      }
+      expect(events.some(e => e.name === "wa_funnel_preselect" && e.payload.equipamento === "tv")).toBeTruthy();
+      const bounds = await funnel.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.x).toBeGreaterThanOrEqual(-1);
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width + 1);
+    });
+  });
+}
