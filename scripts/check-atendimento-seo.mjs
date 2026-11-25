@@ -4,6 +4,7 @@
 // e >=1 <script type="application/ld+json"> por rota. Falha CI em regressão.
 import { existsSync, readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import { stubPublicExternalDependencies } from "./stub-public-external-dependencies.mjs";
 import { resolve } from "node:path";
 
 const BASE = process.env.E2E_BASE_URL || "http://localhost:8080";
@@ -152,6 +153,7 @@ for (const route of routes) {
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
+  await stubPublicExternalDependencies(page);
   for (const route of routes) {
     const expected = expectedMetadata.get(route);
     if (!expected) continue;
