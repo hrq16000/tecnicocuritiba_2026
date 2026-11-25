@@ -72,7 +72,11 @@ async function auditRoute(browser, url, required) {
   const errors = [];
   const page = await browser.newPage();
   try {
-    await page.goto(url, { waitUntil: "networkidle" });
+    // Não bloqueie a auditoria por conexões persistentes de analytics/telemetria.
+    // O documento precisa carregar; networkidle é apenas best-effort.
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
+    await page.waitForTimeout(500);
     // Seções lazy injetam schemas ao entrar no viewport: rola até o fim antes de coletar.
     for (let i = 0; i < 2; i++) {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -170,7 +174,15 @@ async function main() {
   const allErrors = [];
   try {
     for (const { path, required } of ROUTES) {
-      const errs = await auditRoute(browser, `${base}${path}`, required);
+      let errs;
+      try {
+        errs = await auditRoute(browser, `${base}${path}`, required);
+      } catch (error) {
+        if (!/Execution context was destroyed/i.test(String(error))) throw error;
+        // Navegação transitória invalida o contexto: repetir apenas esta rota uma vez.
+        console.warn(`[jsonld] contexto de navegação reiniciado em ${path}; nova tentativa única`);
+        errs = await auditRoute(browser, `${base}${path}`, required);
+      }
       if (errs.length) {
         allErrors.push(`\n✗ ${path}:\n  - ${errs.join("\n  - ")}`);
       } else {

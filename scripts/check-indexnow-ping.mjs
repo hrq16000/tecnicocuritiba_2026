@@ -14,7 +14,7 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 
 const HOST = "tecnicocuritiba.com.br";
-const KEY = "f783ab585dfa9e6b017cb058009cccae";
+const KEY = "f783ab585dfa9e6b017cb058009cccae"; // gitleaks:allow — valor público/não secreto
 const KEY_FILE = path.join(process.cwd(), "public", `${KEY}.txt`);
 
 // Coleta URLs dos sitemaps locais para a resubmissão POST.
