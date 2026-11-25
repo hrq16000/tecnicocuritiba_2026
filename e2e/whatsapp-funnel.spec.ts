@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
 const HOME = "/";
-const UTM_QS = "?utm_source=ci&utm_medium=cpc&utm_campaign=funnel_v3_e2e&gclid=CI_GCLID_777";
+const UTM_QS = "?entry_popup=0&utm_source=ci&utm_medium=cpc&utm_campaign=funnel_v3_e2e&gclid=CI_GCLID_777";
 
 async function installGtagSpy(page: Page) {
   await page.addInitScript(() => {
@@ -123,7 +123,7 @@ test.describe("WhatsAppFunnel v3 — mobile", () => {
   test("modal abre e mostra seleção de equipamento", async ({ page, context }) => {
     await installGtagSpy(page);
     await context.route("https://wa.me/**", (route) => route.fulfill({ status: 204, body: "" }));
-    await page.goto(HOME);
+    await page.goto(`${HOME}?entry_popup=0`);
     await page.waitForLoadState("networkidle");
     const dialog = await openFunnel(page);
     await expect(dialog.getByText(/Qual o equipamento/i)).toBeVisible();

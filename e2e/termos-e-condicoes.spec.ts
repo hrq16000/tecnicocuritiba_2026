@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { NAP, NAP_PHONE_E164 } from "../src/lib/nap";
 
 const ROUTE = "/termos-e-condicoes";
 
@@ -38,7 +39,7 @@ test.describe("/termos-e-condicoes — schema, canonical, single H1, sitemap con
     // LocalBusiness: Curitiba in areaServed, telephone matches WhatsApp, no postal address
     const area = JSON.stringify((localBusiness as { areaServed?: unknown }).areaServed || "");
     expect(area.toLowerCase()).toContain("curitiba");
-    expect((localBusiness as { telephone?: string }).telephone).toMatch(/\+?55.*4197452053/);
+    expect((localBusiness as { telephone?: string }).telephone).toBe(NAP_PHONE_E164);
     expect(JSON.stringify(localBusiness)).not.toMatch(/PostalAddress|streetAddress/i);
 
     // FAQPage: minimum 5 questions
@@ -78,9 +79,26 @@ test.describe("/termos-e-condicoes — schema, canonical, single H1, sitemap con
   });
 
   test("sitemap.xml contains /termos-e-condicoes", async () => {
-    const sitemapPath = join(process.cwd(), "public", "sitemap.xml");
-    const xml = readFileSync(sitemapPath, "utf8");
-    expect(xml).toContain("/termos-e-condicoes");
+    const publicDir = join(process.cwd(), "public");
+    const pending = [new URL("/sitemap.xml", NAP.url)];
+    const visited = new Set<string>();
+    const indexed = new Set<string>();
+    while (pending.length > 0) {
+      const sitemap = pending.pop()!;
+      expect(sitemap.origin).toBe(NAP.url);
+      if (visited.has(sitemap.href)) continue;
+      visited.add(sitemap.href);
+      const xml = readFileSync(join(publicDir, sitemap.pathname.slice(1)), "utf8");
+      const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1].trim());
+      expect(locations.length, `sitemap vazio: ${sitemap.pathname}`).toBeGreaterThan(0);
+      if (/<sitemapindex\b/.test(xml)) {
+        pending.push(...locations.map((location) => new URL(location)));
+      } else {
+        expect(xml).toMatch(/<urlset\b/);
+        locations.forEach((location) => indexed.add(location));
+      }
+    }
+    expect(indexed.has(new URL(ROUTE, NAP.url).href)).toBe(true);
   });
 
   test("h1 does not overflow on mobile and desktop", async ({ page }) => {

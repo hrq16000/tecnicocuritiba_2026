@@ -117,7 +117,7 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
       - name: Build
         run: npm run build
       - name: Start preview
