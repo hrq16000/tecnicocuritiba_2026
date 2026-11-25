@@ -2,12 +2,10 @@
 /**
  * CI check: valida infra do IndexNow.
  *  1. Chave `public/<KEY>.txt` existe e contém apenas a KEY.
- *  2. Edge function `indexnow-ping` (GET) responde 200 quando SUPABASE_URL
- *     estiver disponível — soft-fail se não estiver (permite rodar em PRs
- *     sem acesso ao backend).
- *  3. Se algum sitemap-*.xml em public/ mudou em relação ao último commit,
- *     dispara um ping simulado (ou real quando URL disponível) para o
- *     sitemap-index e reporta o resultado.
+ *  2. Verificações remotas da Edge Function e dos pings são opt-in por
+ *     INDEXNOW_LIVE_CHECK=1. CI/PR não deve chamar backend real nem submeter
+ *     URLs a buscadores; valida a chave local e a alteração de sitemap.
+ *  3. Quando habilitado explicitamente fora do CI, testa GET/POST e o ping.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -56,11 +54,19 @@ try {
   sitemapsChanged = true;
 }
 
-// 3) Ping (edge function e/ou Google/Bing)
+// 3) Verificações remotas são opt-in: PR/CI deve permanecer isolado.
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const ANON = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const liveCheckEnabled = process.env.INDEXNOW_LIVE_CHECK === "1";
+let usableSupabase = Boolean(SUPABASE_URL && ANON && !/ci-placeholder/i.test(ANON));
+try {
+  const hostname = new URL(SUPABASE_URL || "").hostname;
+  if (["localhost", "127.0.0.1", "::1"].includes(hostname)) usableSupabase = false;
+} catch {
+  usableSupabase = false;
+}
 
-if (sitemapsChanged && SUPABASE_URL && ANON) {
+if (sitemapsChanged && liveCheckEnabled && usableSupabase) {
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/indexnow-ping`, {
       method: "GET",
@@ -72,7 +78,6 @@ if (sitemapsChanged && SUPABASE_URL && ANON) {
     log(false, `edge function indexnow-ping GET falhou: ${e.message}`);
   }
 
-  // POST real de resubmissão — falha o build em status != 200 ou corpo inválido.
   try {
     const urls = collectSitemapUrls().slice(0, 200);
     const r = await fetch(`${SUPABASE_URL}/functions/v1/indexnow-ping`, {
@@ -94,10 +99,10 @@ if (sitemapsChanged && SUPABASE_URL && ANON) {
     log(false, `edge function indexnow-ping POST falhou: ${e.message}`);
   }
 } else if (sitemapsChanged) {
-  console.log("  (edge function não testada — SUPABASE_URL/ANON ausentes; soft-skip)");
+  console.log("  (ping remoto não executado — exige INDEXNOW_LIVE_CHECK=1 e credenciais reais; CI/PR permanece isolado)");
 }
 
-if (sitemapsChanged) {
+if (sitemapsChanged && liveCheckEnabled) {
   const sitemapUrl = `https://${HOST}/sitemap.xml`;
   try {
     const r = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
