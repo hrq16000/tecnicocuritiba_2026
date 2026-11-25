@@ -43,7 +43,9 @@ export default function AtendimentoCidadeBairro() {
   }
 
   const localLabel = `${bairro.nome}, ${cidade.nome}`;
-  const title = `Atendimento Técnico em ${bairro.nome}, ${cidade.nome} | WhatsApp`;
+  const titleMain = `Atendimento Técnico em ${bairro.nome}, ${cidade.nome}`;
+  const titleFull = `${titleMain} | WhatsApp`;
+  const title = titleFull.length <= 70 ? titleFull : titleMain;
   const description = `Suporte de informática no bairro ${bairro.nome} (${cidade.nome}). Domicílio, coleta ou remoto, orçamento no WhatsApp a partir de R$ 99,99 com garantia de 90 dias.`;
   const path = `/atendimento/${cidade.slug}/${bairro.slug}`;
   const url = `https://tecnicocuritiba.com.br${path}`;
@@ -67,6 +69,7 @@ export default function AtendimentoCidadeBairro() {
   const serviceLd = {
     "@context": "https://schema.org",
     "@type": "Service",
+    "@id": `${url}#service`,
     name: `Assistência técnica de informática em ${localLabel}`,
     serviceType: "Assistência técnica de informática",
     provider: {
@@ -75,7 +78,7 @@ export default function AtendimentoCidadeBairro() {
       name: NAP.name,
       alternateName: NAP.alternateName,
       telephone: NAP.phone,
-      areaServed: { "@type": "Place", name: localLabel },
+      areaServed: [{ "@type": "Place", name: localLabel }, { "@type": "City", name: cidade.nome }, { "@type": "City", name: "Curitiba" }],
       openingHoursSpecification: napOpeningHours(),
     },
     areaServed: { "@type": "Place", name: localLabel },

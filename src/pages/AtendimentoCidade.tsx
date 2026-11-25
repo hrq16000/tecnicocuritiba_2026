@@ -33,7 +33,9 @@ export default function AtendimentoCidade() {
 
   if (!cidade) return <Navigate to="/servicos" replace />;
 
-  const title = `Atendimento Técnico em ${cidade.nome} | Orçamento no WhatsApp`;
+  const titleMain = `Atendimento Técnico em ${cidade.nome}`;
+  const titleFull = `${titleMain} | Orçamento no WhatsApp`;
+  const title = titleFull.length <= 70 ? titleFull : titleMain;
   const description = `Atendimento técnico de informática em ${cidade.nome}. Domicílio, coleta ou remoto. Orçamento no WhatsApp a partir de R$ 99,99, com garantia de 90 dias.`;
   const url = `https://tecnicocuritiba.com.br/atendimento/${cidade.slug}`;
   const path = `/atendimento/${cidade.slug}`;
@@ -50,6 +52,7 @@ export default function AtendimentoCidade() {
   const serviceLd = {
     "@context": "https://schema.org",
     "@type": "Service",
+    "@id": `${url}#service`,
     name: `Assistência técnica de informática em ${cidade.nome}`,
     serviceType: "Assistência técnica de informática",
     provider: {
@@ -58,7 +61,7 @@ export default function AtendimentoCidade() {
       name: NAP.name,
       alternateName: NAP.alternateName,
       telephone: NAP.phone,
-      areaServed: { "@type": "City", name: cidade.nome },
+      areaServed: [{ "@type": "City", name: cidade.nome }, { "@type": "City", name: "Curitiba" }],
       openingHoursSpecification: napOpeningHours(),
     },
     areaServed: { "@type": "City", name: cidade.nome },
