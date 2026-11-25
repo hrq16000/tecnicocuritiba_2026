@@ -55,8 +55,8 @@ for (const route of routes) {
   const expectedCanonical = SITE + route;
   let html = "";
   try {
-    const res = await fetch(url);
-    if (!res.ok) {
+    const res = await fetch(url, { redirect: "manual" });
+    if (res.status !== 200) {
       failures.push(route + ": HTTP " + res.status);
       continue;
     }
