@@ -174,7 +174,15 @@ async function main() {
   const allErrors = [];
   try {
     for (const { path, required } of ROUTES) {
-      const errs = await auditRoute(browser, `${base}${path}`, required);
+      let errs;
+      try {
+        errs = await auditRoute(browser, `${base}${path}`, required);
+      } catch (error) {
+        if (!/Execution context was destroyed/i.test(String(error))) throw error;
+        // Navegação transitória invalida o contexto: repetir apenas esta rota uma vez.
+        console.warn(`[jsonld] contexto de navegação reiniciado em ${path}; nova tentativa única`);
+        errs = await auditRoute(browser, `${base}${path}`, required);
+      }
       if (errs.length) {
         allErrors.push(`\n✗ ${path}:\n  - ${errs.join("\n  - ")}`);
       } else {
