@@ -162,7 +162,7 @@ for (const width of [390, 1440]) {
       await expect(popup.getByRole("button", { name: "Escolha uma opção" })).toBeDisabled();
       await expect(options.first()).toBeFocused();
       await page.keyboard.press("Tab");
-      await expect(popup.locator(":focus")).toHaveCount(1);
+      await expect(popup.getByRole("button", { name: "TV", exact: true })).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(popup).toBeHidden();
       await page.reload();

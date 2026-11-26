@@ -36,8 +36,8 @@ test.describe("Mobile — funil nunca pula etapa 3", () => {
   for (const c of CASES) {
     test(`[${c.label}] passa pela etapa 3 e reseta após envio`, async ({ page }) => {
       await stubs(page);
-      await page.goto("/?entry_popup=0");
-      await page.waitForLoadState("networkidle");
+      await page.goto("/?entry_popup=0", { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 15000 });
       await page.evaluate(() => {
         window.dispatchEvent(new CustomEvent("wa-funnel:open", { detail: { location: "test" } }));
       });

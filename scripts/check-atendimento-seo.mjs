@@ -166,6 +166,11 @@ try {
         failures.push(route + ": DOM hidratado HTTP " + (response?.status() ?? "sem resposta"));
         continue;
       }
+      await page.waitForFunction(
+        () => document.documentElement.dataset.hydrated === "1",
+        undefined,
+        { timeout: 15000 },
+      );
       const h1 = page.locator("h1");
       await h1.first().waitFor({ state: "visible", timeout: 12000 });
       const count = await h1.count();

@@ -86,13 +86,43 @@ async function auditRoute(browser, url, required) {
     // O documento precisa carregar; networkidle é apenas best-effort.
     const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
     if (!response || !response.ok()) return [`HTTP ${response?.status() ?? "no response"}`];
-    await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
-    await page.waitForTimeout(500);
-    // Seções lazy injetam schemas ao entrar no viewport: rola até o fim antes de coletar.
+    await page.waitForFunction(
+      () => document.documentElement.dataset.hydrated === "1",
+      undefined,
+      { timeout: 15_000 },
+    );
+    // Seções lazy injetam schemas ao entrar no viewport: ativa o carregamento antes da espera sem prazo fixo de prontidão.
     for (let i = 0; i < 2; i++) {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(150);
     }
+    // Aguarda todos os tipos exigidos pela rota, com limite explícito; ausências são relatadas abaixo.
+    await page.waitForFunction((types) => {
+      const found = new Set();
+      const visit = (value) => {
+        if (Array.isArray(value)) {
+          value.forEach(visit);
+          return;
+        }
+        if (!value || typeof value !== "object") return;
+        const type = value["@type"];
+        if (typeof type === "string") found.add(type);
+        if (Array.isArray(type)) {
+          type.forEach((item) => {
+            if (typeof item === "string") found.add(item);
+          });
+        }
+        if (Array.isArray(value["@graph"])) value["@graph"].forEach(visit);
+      };
+      for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          visit(JSON.parse(script.textContent || "null"));
+        } catch {
+          /* parse errors are reported by the collection step below */
+        }
+      }
+      return types.every((type) => found.has(type));
+    }, required, { timeout: 12_000 }).catch(() => {});
     const raw = await page.$$eval('script[type="application/ld+json"]', (nodes) =>
       nodes
         .map((n) => {

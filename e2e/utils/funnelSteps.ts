@@ -25,8 +25,7 @@ export async function advanceFromModality(dialog: Locator, requiresColeta: boole
   if (requiresColeta) {
     await expect(next).toBeDisabled();
     await dialog.locator('[data-funnel-field="coleta"]').getByRole("checkbox").check();
-    await expect(next).toBeEnabled();
-    await next.click();
+    await expectFunnelStep(dialog, 5);
   } else {
     await expect(dialog.locator("[data-funnel-route]")).toBeVisible();
     await expect(next).toBeEnabled();

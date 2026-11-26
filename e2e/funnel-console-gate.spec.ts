@@ -38,7 +38,7 @@ for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`${BASE}/?entry_popup=0`, { waitUntil: "domcontentloaded" });
-    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 15000 });
 
     // CTA real e passos explícitos; não clicar arbitrariamente ou engolir falhas.
     await page.getByTestId("whatsapp-float").click();
@@ -53,7 +53,7 @@ for (const vp of VIEWPORTS) {
 
     // Rota B2B (PJ) — mesma exigência de console limpo.
     await page.goto(`${BASE}/suporte-empresas?entry_popup=0`, { waitUntil: "domcontentloaded" });
-    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 15000 });
 
     expect(errors, `erros de console em ${vp.name}:\n${errors.join("\n")}`).toEqual([]);
   });

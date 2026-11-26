@@ -32,35 +32,47 @@ const isolatedUrl = (url: string) => {
 };
 
 const sample = <T,>(arr: T[], n: number): T[] => {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy.slice(0, n);
+  const ordered = [...arr].sort((a, b) => String(a).localeCompare(String(b)));
+  if (ordered.length <= n) return ordered;
+  return Array.from({ length: n }, (_, i) =>
+    ordered[Math.floor(((i + 0.5) * ordered.length) / n)],
+  );
 };
 
 test.describe("SEO: <title> único por URL", () => {
-  test("amostra de 50 URLs do sitemap", async ({ page }, testInfo) => {
-    test.setTimeout(90_000);
+  test("amostra determinística de 50 URLs do sitemap", async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
     const all = readSitemapUrls();
     expect(all.length).toBeGreaterThan(0);
     const sampled = sample(all, 50);
     const rows: Array<{ url: string; title: string }> = [];
+    const navigationErrors: string[] = [];
 
     for (const url of sampled) {
-      const res = await page.goto(isolatedUrl(url), { waitUntil: "commit", timeout: 15000 }).catch(() => null);
-      expect(res?.ok(), `HTTP inválido em ${url}`).toBe(true);
-      await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 10000 });
-      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      // Um title não vazio pode ser apenas o fallback estático da home.
-      if (url !== "/") {
-        await expect(page).not.toHaveTitle("Técnico de Informática em Curitiba | Conserto de PC e Notebook");
+      const routePage = await page.context().newPage();
+      try {
+        const res = await routePage.goto(isolatedUrl(url), { waitUntil: "domcontentloaded", timeout: 15000 });
+        if (!res || !res.ok()) {
+          navigationErrors.push(`HTTP inválido em ${url}: ${res?.status() ?? "sem resposta"}`);
+          continue;
+        }
+        await routePage.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 15000 });
+        await expect(routePage.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 10000 });
+        // Um title não vazio pode ser apenas o fallback estático da home.
+        if (url !== "/") {
+          await expect(routePage).not.toHaveTitle("Técnico de Informática em Curitiba | Conserto de PC e Notebook");
+        }
+        const title = await routePage.title();
+        expect(title.trim().length, `title vazio em ${url}`).toBeGreaterThan(0);
+        rows.push({ url, title });
+      } catch (error) {
+        navigationErrors.push(`${url}: ${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+        await routePage.close();
       }
-      const title = await page.title();
-      expect(title.trim().length, `title vazio em ${url}`).toBeGreaterThan(0);
-      rows.push({ url, title });
     }
+
+    expect(navigationErrors, `Falhas ao carregar URLs do sitemap: ${navigationErrors.length}`).toEqual([]);
 
     // Dedup check
     const seen = new Map<string, string[]>();

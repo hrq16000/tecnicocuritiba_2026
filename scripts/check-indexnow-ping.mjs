@@ -10,6 +10,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
+import { isLiveCheckEnabled, isLoopbackHostname } from "./indexnow-live-check.mjs";
 
 const HOST = "tecnicocuritiba.com.br";
 const KEY = "f783ab585dfa9e6b017cb058009cccae"; // gitleaks:allow — valor público/não secreto
@@ -57,11 +58,11 @@ try {
 // 3) Verificações remotas são opt-in: PR/CI deve permanecer isolado.
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const ANON = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const liveCheckEnabled = process.env.INDEXNOW_LIVE_CHECK === "1";
+const liveCheckEnabled = isLiveCheckEnabled();
 let usableSupabase = Boolean(SUPABASE_URL && ANON && !/ci-placeholder/i.test(ANON));
 try {
   const hostname = new URL(SUPABASE_URL || "").hostname;
-  if (["localhost", "127.0.0.1", "::1"].includes(hostname)) usableSupabase = false;
+  if (isLoopbackHostname(hostname)) usableSupabase = false;
 } catch {
   usableSupabase = false;
 }
@@ -99,7 +100,7 @@ if (sitemapsChanged && liveCheckEnabled && usableSupabase) {
     log(false, `edge function indexnow-ping POST falhou: ${e.message}`);
   }
 } else if (sitemapsChanged) {
-  console.log("  (ping remoto não executado — exige INDEXNOW_LIVE_CHECK=1 e credenciais reais; CI/PR permanece isolado)");
+  console.log("  (ping remoto não executado — exige INDEXNOW_LIVE_CHECK=1 fora de CI e credenciais reais)");
 }
 
 if (sitemapsChanged && liveCheckEnabled) {
