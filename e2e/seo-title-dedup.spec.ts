@@ -49,7 +49,7 @@ test.describe("SEO: <title> único por URL", () => {
     const rows: Array<{ url: string; title: string }> = [];
 
     for (const url of sampled) {
-      const res = await page.goto(isolatedUrl(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+      const res = await page.goto(isolatedUrl(url), { waitUntil: "commit", timeout: 15000 }).catch(() => null);
       expect(res?.ok(), `HTTP inválido em ${url}`).toBe(true);
       await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 10000 });
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

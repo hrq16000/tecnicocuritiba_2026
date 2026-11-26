@@ -44,10 +44,31 @@ test.describe("Como Funciona + modais — CTAs e CLS", () => {
     await expect(modal).toBeHidden();
 
     // Scroll até "Como funciona" e verifica CTAs por etapa
-    await page.evaluate(() => {
-      const el = document.getElementById("como-funciona-fluxo");
-      el?.scrollIntoView({ behavior: "instant" as ScrollBehavior, block: "start" });
+    await page.evaluate(async () => {
+      const root = document.documentElement;
+      const previousScrollBehavior = root.style.scrollBehavior;
+      const step = Math.max(320, Math.floor(window.innerHeight * 0.75));
+      root.style.scrollBehavior = "auto";
+
+      for (let i = 0; i < 80; i += 1) {
+        window.scrollTo(0, i * step);
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+
+        const section = document.getElementById("como-funciona-fluxo");
+        if (section) {
+          section.scrollIntoView({ block: "start" });
+          root.style.scrollBehavior = previousScrollBehavior;
+          return;
+        }
+
+        if (i * step >= root.scrollHeight - window.innerHeight) break;
+      }
+
+      root.style.scrollBehavior = previousScrollBehavior;
     });
+    await expect(page.locator("#como-funciona-fluxo")).toBeVisible({ timeout: 10_000 });
     for (let i = 1; i <= 4; i++) {
       const cta = page.getByTestId(`como-funciona-cta-${i}`);
       await expect(cta).toBeVisible();
