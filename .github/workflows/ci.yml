@@ -184,7 +184,7 @@ jobs:
           E2E_BASE_URL: http://localhost:8080
         run: node scripts/check-atendimento-seo.mjs
       - name: IndexNow guard tests (default, CI block, opt-in local, IPv6)
-        run: node --test scripts/indexnow-live-check.test.mjs
+        run: node --test scripts/indexnow-live-check-node-test.mjs
       - name: IndexNow infra + sitemap ping check
         env:
           CI: "true"
