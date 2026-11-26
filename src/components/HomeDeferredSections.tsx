@@ -52,7 +52,7 @@ const DeferredContent = () => (
     <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><SocialProofSection /></Suspense></LazyOnVisible>
 
 
-    <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><ComoFuncionaFluxo /></Suspense></LazyOnVisible>
+    <LazyOnVisible rootMargin="-240px 0px" testId="home-como-funciona-lazy"><Suspense fallback={<SectionFallback />}><ComoFuncionaFluxo /></Suspense></LazyOnVisible>
 
 
     <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><HomePricingBlock /></Suspense></LazyOnVisible>

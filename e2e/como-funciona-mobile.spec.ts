@@ -45,16 +45,9 @@ test.describe("Como Funciona + modais — CTAs e CLS", () => {
 
     // Scroll até "Como funciona" e verifica CTAs por etapa
     const fluxo = page.locator("#como-funciona-fluxo");
-    await page.evaluate(() => {
-      document.documentElement.style.scrollBehavior = "auto";
-    });
-    for (let i = 0; i < 80 && !(await fluxo.count()); i += 1) {
-      await page.evaluate(() => {
-        const step = Math.max(320, Math.floor(window.innerHeight * 0.75));
-        window.scrollBy(0, step);
-      });
-      await page.waitForTimeout(50);
-    }
+    // Scroll to the actual lazy placeholder. Its negative rootMargin is narrower
+    // than a viewport-height jump, so scrolling the page in large steps can skip it.
+    await page.getByTestId("home-como-funciona-lazy").scrollIntoViewIfNeeded();
     await expect(fluxo).toBeVisible({ timeout: 10_000 });
     await fluxo.scrollIntoViewIfNeeded();
     for (let i = 1; i <= 4; i++) {
