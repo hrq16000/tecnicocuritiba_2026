@@ -247,7 +247,7 @@ jobs:
 
 
   # Owner gate: only after confirming Production host, deployed SHA and rollback.
-indexnow:
+  indexnow:
     runs-on: ubuntu-latest
     needs: [build, e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.TECNICOCURITIBA_PRODUCTION_RELEASE_CONFIRMED_20261125 == 'true'
@@ -288,7 +288,7 @@ indexnow:
           node scripts/indexnow-ping.mjs
 
   # This hook writes to Supabase and notifies external services; explicit owner gate required.
-seo-deploy-hook:
+  seo-deploy-hook:
     runs-on: ubuntu-latest
     needs: [build, e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.TECNICOCURITIBA_PRODUCTION_RELEASE_CONFIRMED_20261125 == 'true'
