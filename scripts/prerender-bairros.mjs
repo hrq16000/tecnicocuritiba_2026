@@ -11,9 +11,10 @@
 import { promises as fs } from "node:fs";
 import fsSync from "node:fs";
 import path from "node:path";
+import { readNap } from "./read-nap.mjs";
 
 const SITE = "https://tecnicocuritiba.com.br";
-const PHONE = "+5541997452053";
+const NAP = readNap();
 
 // Foto real (Unsplash, Unsplash License) exibida no card principal das páginas
 // locais — usada como imagem social para que qualquer citação da URL mostre
@@ -45,6 +46,47 @@ const CITY_SUFFIX = [
 ];
 
 const SMALL_WORDS = new Set(["de", "da", "do", "das", "dos", "e"]);
+
+ // Nomes de cidade/bairro vêm dos mesmos dados consumidos pelas páginas React.
+ // Evita title/description sem acentos ou com capitalização divergente no HTML inicial.
+const CITY_NAME_BY_SLUG = (() => {
+  const source = fsSync.readFileSync(path.resolve("src/lib/servicoCidadeData.ts"), "utf8");
+  const start = source.indexOf("export const CIDADES");
+  const end = source.indexOf("];", start);
+  if (start < 0 || end < 0) throw new Error("CIDADES canônicas não encontradas");
+  const block = source.slice(start, end);
+  return new Map([...block.matchAll(/\{\s*slug:\s*"([^"]+)"\s*,\s*nome:\s*"([^"]+)"/g)].map((m) => [m[1], m[2]]));
+})();
+
+const BAIRRO_NAME_BY_KEY = (() => {
+  const source = fsSync.readFileSync(path.resolve("src/lib/atendimentoBairrosData.ts"), "utf8");
+  const start = source.indexOf("export const BAIRROS_ATENDIMENTO");
+  const end = source.indexOf("\n};", start);
+  if (start < 0 || end < 0) throw new Error("BAIRROS_ATENDIMENTO canônicos não encontrados");
+  const block = source.slice(start, end);
+  const out = new Map();
+  const keys = /^\s*(?:"([^"]+)"|([a-z0-9-]+)):\s*\[/gm;
+  for (const match of block.matchAll(keys)) {
+    const citySlug = match[1] || match[2];
+    const open = block.indexOf("[", match.index);
+    let depth = 0;
+    let close = -1;
+    for (let i = open; i < block.length; i++) {
+      if (block[i] === "[") depth++;
+      else if (block[i] === "]") {
+        depth--;
+        if (depth === 0) { close = i; break; }
+      }
+    }
+    if (close < 0) throw new Error(`Lista de bairros sem fechamento: ${citySlug}`);
+    const list = block.slice(open + 1, close);
+    for (const entry of list.matchAll(/\{\s*slug:\s*"([^"]+)"\s*,\s*nome:\s*"([^"]+)"/g)) {
+      out.set(`${citySlug}/${entry[1]}`, entry[2]);
+    }
+  }
+  return out;
+})();
+
 
 function titleize(slug) {
   return slug
@@ -131,22 +173,26 @@ function metaForPath(routePath) {
 
   // /atendimento/<cidade> e /atendimento/<cidade>/<bairro>
   if (segs[0] === "atendimento" && segs[1]) {
-    const city = titleize(segs[1]);
+    const city = CITY_NAME_BY_SLUG.get(segs[1]) || titleize(segs[1]);
     if (segs[2]) {
-      const bairro = titleize(segs[2]);
+      const bairro = BAIRRO_NAME_BY_KEY.get(`${segs[1]}/${segs[2]}`) || titleize(segs[2]);
+      const serviceName = `Assistência técnica de informática em ${bairro}, ${city}`;
       return {
         url,
         routePath,
         title: clampTitle(`Atendimento Técnico em ${bairro}, ${city}`, "WhatsApp"),
-        description: `Suporte de informática no bairro ${bairro}, em ${city}. Atendimento a domicílio, coleta ou remoto, com orçamento pelo WhatsApp a partir de R$ 99,99.`,
-        areaServed: [bairro, city],
+        description: `Suporte de informática no bairro ${bairro} (${city}). Domicílio, coleta ou remoto, orçamento no WhatsApp a partir de R$ 99,99 com garantia de 90 dias.`,
+        serviceName,
+        areaServed: [`${bairro}, ${city}`, city, "Curitiba"],
       };
     }
+    const serviceName = `Assistência técnica de informática em ${city}`;
     return {
       url,
       routePath,
       title: clampTitle(`Atendimento Técnico em ${city}`, "Orçamento no WhatsApp"),
-      description: `Atendimento técnico de informática em ${city}: domicílio, coleta ou remoto. Orçamento pelo WhatsApp a partir de R$ 99,99, com garantia de 90 dias.`,
+      description: `Atendimento técnico de informática em ${city}. Domicílio, coleta ou remoto. Orçamento no WhatsApp a partir de R$ 99,99, com garantia de 90 dias.`,
+      serviceName,
       areaServed: [city, "Curitiba"],
     };
   }
@@ -182,22 +228,24 @@ function buildJsonLd(meta) {
     "@graph": [
       {
         "@type": "LocalBusiness",
-        "@id": `${meta.url}#business`,
-        name: "Técnico em Curitiba",
-        url: meta.url,
-        telephone: PHONE,
-        priceRange: "$$",
+        "@id": `${SITE}/#localbusiness`,
+        name: NAP.name,
+        alternateName: NAP.alternateName,
+        url: NAP.url,
+        telephone: NAP.phone,
+        openingHoursSpecification: NAP.openingHoursSpecification,
+        priceRange: "$",
         image: `${SITE}/og-image.jpg`,
         areaServed: meta.areaServed.map((name) => ({ "@type": "Place", name })),
       },
       {
         "@type": "Service",
         "@id": `${meta.url}#service`,
-        name: meta.title,
+        name: meta.serviceName || meta.title,
         serviceType: "Assistência técnica de informática",
         description: meta.description,
         url: meta.url,
-        provider: { "@id": `${meta.url}#business` },
+        provider: { "@id": `${SITE}/#localbusiness` },
         areaServed: meta.areaServed.map((name) => ({ "@type": "Place", name })),
       },
       {

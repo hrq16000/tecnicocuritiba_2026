@@ -4,17 +4,21 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { readNap } from "./read-nap.mjs";
 
 const SITE = "https://tecnicocuritiba.com.br";
 const OG_VERSION = "20260615";
+const NAP = readNap();
 
 const provider = {
   "@type": "LocalBusiness",
-  "@id": `${SITE}/#organization`,
-  name: "Técnico em Curitiba",
-  url: SITE,
-  telephone: "+55-41-99745-2053",
+  "@id": `${SITE}/#localbusiness`,
+  name: NAP.name,
+  alternateName: NAP.alternateName,
+  url: NAP.url,
+  telephone: NAP.phone,
   areaServed: { "@type": "City", name: "Curitiba" },
+  openingHoursSpecification: NAP.openingHoursSpecification,
 };
 
 const crumbs = (items) => ({
@@ -149,9 +153,9 @@ export const PILOT_ROUTES = [
   },
   {
     path: "/atendimento",
-    title: "Atendimento por Cidade e Bairro | Técnico em Curitiba",
+    title: "Atendimento Técnico na Grande Curitiba | Técnico em Curitiba",
     description:
-      "Cobertura de atendimento em Curitiba e Região Metropolitana por cidade e bairro. Escolha sua região e fale com um técnico agora.",
+      "Escolha sua cidade e receba atendimento técnico de informática rápido: domicílio, coleta ou remoto. A partir de R$ 99,99, com garantia de 90 dias.",
     kind: "page",
   },
   {

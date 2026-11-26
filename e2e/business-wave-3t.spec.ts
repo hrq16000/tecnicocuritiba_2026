@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { stubConsoleDependencies } from "./utils/stubConsoleDependencies";
 import { BASE_URL } from "./utils/baseUrl";
 
 const PAGES = [
@@ -50,7 +51,8 @@ test.describe("Rodada 3T — propagação empresarial nas páginas de serviço",
     });
 
     test(`${p.path}: sem overflow horizontal e console limpo`, async ({ page }) => {
-      const errors: string[] = [];
+      await stubConsoleDependencies(page);
+    const errors: string[] = [];
       page.on("console", (m) => {
         if (m.type() === "error") errors.push(m.text());
       });

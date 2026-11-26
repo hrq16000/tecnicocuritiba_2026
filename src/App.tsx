@@ -195,6 +195,13 @@ const HomeApp = () => {
   );
   const [showNavLoader, setShowNavLoader] = useState(false);
 
+  useEffect(() => {
+    document.documentElement.dataset.hydrated = "1";
+    return () => {
+      delete document.documentElement.dataset.hydrated;
+    };
+  }, []);
+
   return (
     <AppErrorBoundary>
       <AppInit />

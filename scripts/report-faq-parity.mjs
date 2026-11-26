@@ -13,6 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
+import { stubPublicExternalDependencies } from "./stub-public-external-dependencies.mjs";
 
 const SITE = "https://tecnicocuritiba.com.br";
 const BASE = (process.env.BASE_URL || "http://localhost:8080").replace(/\/$/, "");
@@ -54,11 +55,32 @@ for (const route of routes) {
   let structured = [];
   let status = "ok";
   try {
-    const res = await page.goto(`${BASE}${route}`, { waitUntil: "networkidle", timeout: 45000 });
+    await stubPublicExternalDependencies(page);
+    const url = new URL(route, BASE);
+    url.searchParams.set("entry_popup", "0");
+    const res = await page.goto(url.toString(), { waitUntil: "domcontentloaded", timeout: 20000 });
     if (!res || !res.ok()) status = `http_${res ? res.status() : "erro"}`;
+    await page.locator("h1").first().waitFor({ state: "visible", timeout: 10000 });
+    // Ativa seções sob demanda; espera o contrato real, não um sleep fixo.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForFunction(() => {
+      const questions = [...document.querySelectorAll("[data-faq-question], details > summary")]
+        .filter((el) => (el.textContent || "").trim().endsWith("?"));
+      const hasFaqPage = [...document.querySelectorAll('script[type="application/ld+json"]')].some((el) => {
+        try {
+          const json = JSON.parse(el.textContent || "");
+          const nodes = Array.isArray(json) ? json : json["@graph"] || [json];
+          return nodes.some((node) => node["@type"] === "FAQPage" && Array.isArray(node.mainEntity));
+        } catch { return false; }
+      });
+      return questions.length > 0 && hasFaqPage;
+    }, null, { timeout: 10000 });
+  } catch (err) {
+    status = `erro: ${err.message.slice(0, 60)}`;
+  }
 
-    // Somente perguntas dentro de blocos de FAQ (acordeão ou <details>),
-    // evitando falsos positivos de títulos de seção terminados em "?".
+  // Coleta também em caso de timeout para produzir diagnóstico útil no CSV.
+  try {
     visible = await page.$$eval("[data-faq-question], details > summary", (els) =>
       els.map((e) => e.textContent || "").filter((t) => t.trim().endsWith("?")),
     );
@@ -66,21 +88,19 @@ for (const route of routes) {
       const qs = [];
       for (const el of els) {
         try {
-          const j = JSON.parse(el.textContent || "");
-          const nodes = Array.isArray(j) ? j : j["@graph"] || [j];
-          for (const n of nodes) {
-            if (n["@type"] === "FAQPage" && Array.isArray(n.mainEntity)) {
-              for (const q of n.mainEntity) qs.push(q.name || "");
+          const json = JSON.parse(el.textContent || "");
+          const nodes = Array.isArray(json) ? json : json["@graph"] || [json];
+          for (const node of nodes) {
+            if (node["@type"] === "FAQPage" && Array.isArray(node.mainEntity)) {
+              for (const q of node.mainEntity) qs.push(q.name || "");
             }
           }
-        } catch {
-          /* ignore */
-        }
+        } catch { /* ignore malformed independent schema */ }
       }
       return qs;
     });
   } catch (err) {
-    status = `erro: ${err.message.slice(0, 60)}`;
+    if (status === "ok") status = `erro: ${err.message.slice(0, 60)}`;
   }
   await page.close();
 

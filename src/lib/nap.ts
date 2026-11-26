@@ -1,5 +1,5 @@
 /**
- * NAP — fonte ÚNICA de verdade (Name · Address · Phone) do negócio.
+ * NAP — fonte ÚNICA de verdade (Name · área atendida · Phone) do negócio.
  *
  * Todo JSON-LD, botão de contato e link de WhatsApp DEVE derivar destes
  * valores. Divergência de telefone/razão social entre páginas destrói a
@@ -15,8 +15,8 @@ export const NAP_PHONE_DIGITS = "5541997452053";
 
 export const NAP = {
   /** Razão social / nome do negócio exibido em LocalBusiness e Organization. */
-  name: "Técnico em Curitiba — Assistência Técnica em Informática",
-  alternateName: "Técnico em Curitiba",
+  name: "Técnico em Curitiba",
+  alternateName: "Técnico em Curitiba — Assistência Técnica em Informática",
   legalName: "Técnico em Curitiba — Assistência Técnica em Informática",
   street: "Atendimento a domicílio e coleta",
   city: "Curitiba",
@@ -36,14 +36,8 @@ export const NAP = {
   foundingDate: "1998",
 } as const;
 
-/** Bloco `address` padrão para qualquer schema. */
-export const napPostalAddress = () => ({
-  "@type": "PostalAddress",
-  streetAddress: NAP.street,
-  addressLocality: NAP.city,
-  addressRegion: NAP.region,
-  addressCountry: NAP.country,
-});
+/** O negócio não divulga endereço físico. Não emitir PostalAddress. */
+export const napPostalAddress = (): undefined => undefined;
 
 /** Bloco `openingHoursSpecification` padrão. */
 export const napOpeningHours = () => [

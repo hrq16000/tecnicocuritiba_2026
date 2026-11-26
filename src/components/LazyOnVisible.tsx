@@ -6,6 +6,8 @@ interface LazyOnVisibleProps {
   minHeight?: string;
   /** Distance (px) ahead of viewport that triggers mount. */
   rootMargin?: string;
+  /** Stable hook for E2E to scroll to a deferred section without skipping its IO threshold. */
+  testId?: string;
 }
 
 /**
@@ -17,6 +19,7 @@ export const LazyOnVisible = ({
   children,
   minHeight = "400px",
   rootMargin = "0px 0px",
+  testId,
 }: LazyOnVisibleProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -43,7 +46,7 @@ export const LazyOnVisible = ({
   }, [visible, rootMargin]);
 
   if (visible) return <>{children}</>;
-  return <div ref={ref} aria-hidden="true" style={{ minHeight }} />;
+  return <div ref={ref} data-testid={testId} aria-hidden="true" style={{ minHeight }} />;
 };
 
 export default LazyOnVisible;

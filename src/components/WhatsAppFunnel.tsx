@@ -291,7 +291,15 @@ export const WhatsAppFunnel = () => {
         preset = u.searchParams.get("text") || undefined;
       } catch { /* noop */ }
 
-      trackCTAClick("whatsapp", loc);
+      // O listener capture impede o onClick React do link. Preserva aqui
+      // os mesmos atributos explícitos do CTA, sem perder contexto da triagem.
+      trackCTAClick("whatsapp", loc, {
+        servico: a.dataset.service,
+        bairro: a.dataset.neighborhood,
+        cidade: a.dataset.city,
+        category: a.dataset.category,
+        symptomSlug: a.dataset.symptomSlug,
+      });
       openFunnel(loc, preset);
     };
     document.addEventListener("click", handler, true);
@@ -720,7 +728,7 @@ export const WhatsAppFunnel = () => {
                       : "border-border bg-card hover:border-primary/60"
                   }`}
                 >
-                  <p className="text-xl leading-none">{b.emoji}</p>
+                  <p aria-hidden="true" className="text-xl leading-none">{b.emoji}</p>
                   <p className="text-[13px] font-semibold mt-1">{b.label}</p>
                 </button>
               ))}

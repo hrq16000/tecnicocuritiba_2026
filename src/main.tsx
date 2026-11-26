@@ -15,9 +15,9 @@ try {
   document.documentElement.style.colorScheme = "light";
   localStorage.removeItem("theme");
 } catch { /* noop */ }
-// Sinaliza ao fallback estático do index.html que o JS hidratou.
+// A versão é registrada no bootstrap; o sinal de montagem React é definido
+// por HomeApp somente depois do primeiro commit.
 try {
-  document.documentElement.dataset.hydrated = "1";
   const meta = document.querySelector('meta[name="app-version"]');
   if (meta) meta.setAttribute("content", `${APP_BUILD_INFO.version} @ ${APP_BUILD_INFO.buildTime}`);
   // Cache-bust automático: se a versão atual difere da última vista nesta
@@ -85,7 +85,43 @@ const runWhenIdle = (fn: () => void) => {
   }
 };
 
-runWhenIdle(() => {
-  import("./lib/whatsappUtm").then(({ initWhatsAppUtm }) => initWhatsAppUtm());
-  import("./lib/webVitals").then(({ initWebVitals }) => initWebVitals());
+let pageIsLeaving = false;
+const initializedOptionalModules = new Set<string>();
+
+const initOptionalModule = (loader: () => Promise<unknown>, exportName: string) => {
+  if (pageIsLeaving || initializedOptionalModules.has(exportName)) return;
+  void loader()
+    .then((loaded) => {
+      if (pageIsLeaving || initializedOptionalModules.has(exportName)) return;
+      const init = (loaded as Record<string, unknown> | null | undefined)?.[exportName];
+      if (typeof init !== "function") {
+        handleChunkError("Failed to fetch dynamically imported module");
+        return;
+      }
+      (init as () => void)();
+      initializedOptionalModules.add(exportName);
+    })
+    .catch((error: unknown) => {
+      if (pageIsLeaving) return;
+      const message = error instanceof Error ? error.message : String(error);
+      if (isChunkLoadError(message)) handleChunkError(message);
+      else console.error(error);
+    });
+};
+
+const initOptionalModules = () => {
+  initOptionalModule(() => import("./lib/whatsappUtm"), "initWhatsAppUtm");
+  initOptionalModule(() => import("./lib/webVitals"), "initWebVitals");
+};
+
+window.addEventListener("pagehide", () => {
+  pageIsLeaving = true;
 });
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    pageIsLeaving = false;
+    runWhenIdle(initOptionalModules);
+  }
+});
+
+runWhenIdle(initOptionalModules);

@@ -7,7 +7,7 @@ import { test, expect, type Page } from "@playwright/test";
  *  - o link da política abre corretamente em mobile e desktop
  */
 
-const CONSENT_KEY = "lgpd_consent_v2";
+const CONSENT_KEY = "lgpd_consent_v2"; // gitleaks:allow — chave localStorage de consentimento
 const POLICY_PATH = "/politica-de-cookies-e-anuncios";
 
 const VIEWPORTS = [
@@ -35,16 +35,18 @@ async function lastConsentUpdate(page: Page): Promise<ConsentUpdate | null> {
 }
 
 async function openFresh(page: Page) {
-  await page.goto("/");
-  await page.evaluate(() => {
+  await page.addInitScript(() => {
     try {
+      if (sessionStorage.getItem("__consent_test_reset__") === "1") return;
       localStorage.removeItem("lgpd_consent_v2");
       localStorage.removeItem("lgpd_consent_v1");
+      sessionStorage.setItem("__consent_test_reset__", "1");
     } catch {
       /* noop */
     }
   });
-  await page.reload();
+  await page.goto("/?entry_popup=0", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 15000 });
   const banner = page.getByRole("region", { name: /privacidade e cookies/i });
   await expect(banner).toBeVisible({ timeout: 10000 });
   return banner;

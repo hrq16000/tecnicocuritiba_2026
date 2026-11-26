@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const WHATSAPP_NUMBER = "5541997452053";
-const WHATSAPP_MESSAGE = "Olá! Preciso de suporte técnico.";
+const WHATSAPP_MESSAGE = "Olá! Vim do site tecnicocuritiba.com.br. Preciso de suporte técnico.";
 
 const trackHeaderClick = (type: "whatsapp") => {
   import("@/lib/analytics").then(({ trackCTAClick }) => trackCTAClick(type, "header"));
@@ -153,7 +153,7 @@ export const Header = () => {
             onClick={() => trackHeaderClick("whatsapp")}
             aria-label="Falar com técnico no WhatsApp"
             data-cta-variant="whatsapp"
-            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-[hsl(var(--whatsapp))] px-3 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-[hsl(var(--whatsapp-hover))] sm:min-w-24"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[hsl(var(--whatsapp))] px-3 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-[hsl(var(--whatsapp-hover))] sm:min-w-24"
           >
             <span aria-hidden="true">☏</span>
             <span>WhatsApp</span>

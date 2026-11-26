@@ -71,13 +71,58 @@ async function waitForServer(url, timeoutMs = 30_000) {
 async function auditRoute(browser, url, required) {
   const errors = [];
   const page = await browser.newPage();
+  const diagnostics = new Set();
+  page.on("pageerror", (error) => {
+    if (/supabaseUrl is required|supabaseKey is required/i.test(error.message)) diagnostics.add("Supabase SDK configuration missing");
+    else diagnostics.add("Uncaught browser error: " + error.name);
+  });
+  page.on("requestfailed", (request) => {
+    if (request.resourceType() === "script" && new URL(request.url()).origin === new URL(url).origin) {
+      diagnostics.add("Local script request failed: " + new URL(request.url()).pathname);
+    }
+  });
   try {
-    await page.goto(url, { waitUntil: "networkidle" });
-    // Seções lazy injetam schemas ao entrar no viewport: rola até o fim antes de coletar.
+    // Não bloqueie a auditoria por conexões persistentes de analytics/telemetria.
+    // O documento precisa carregar; networkidle é apenas best-effort.
+    const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    if (!response || !response.ok()) return [`HTTP ${response?.status() ?? "no response"}`];
+    await page.waitForFunction(
+      () => document.documentElement.dataset.hydrated === "1",
+      undefined,
+      { timeout: 15_000 },
+    );
+    // Seções lazy injetam schemas ao entrar no viewport: ativa o carregamento antes da espera sem prazo fixo de prontidão.
     for (let i = 0; i < 2; i++) {
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(150);
     }
+    // Aguarda todos os tipos exigidos pela rota, com limite explícito; ausências são relatadas abaixo.
+    await page.waitForFunction((types) => {
+      const found = new Set();
+      const visit = (value) => {
+        if (Array.isArray(value)) {
+          value.forEach(visit);
+          return;
+        }
+        if (!value || typeof value !== "object") return;
+        const type = value["@type"];
+        if (typeof type === "string") found.add(type);
+        if (Array.isArray(type)) {
+          type.forEach((item) => {
+            if (typeof item === "string") found.add(item);
+          });
+        }
+        if (Array.isArray(value["@graph"])) value["@graph"].forEach(visit);
+      };
+      for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          visit(JSON.parse(script.textContent || "null"));
+        } catch {
+          /* parse errors are reported by the collection step below */
+        }
+      }
+      return types.every((type) => found.has(type));
+    }, required, { timeout: 12_000 }).catch(() => {});
     const raw = await page.$$eval('script[type="application/ld+json"]', (nodes) =>
       nodes
         .map((n) => {
@@ -142,9 +187,13 @@ async function auditRoute(browser, url, required) {
           errors.push("BreadcrumbList.itemListElement must have >=2 entries");
       }
     }
+  } catch (error) {
+    if (diagnostics.size) console.warn(`[jsonld] ${new URL(url).pathname}: ${[...diagnostics].join("; ")}`);
+    throw error;
   } finally {
     await page.close();
   }
+  if (errors.length && diagnostics.size) errors.push(...diagnostics);
   return errors;
 }
 
@@ -170,7 +219,15 @@ async function main() {
   const allErrors = [];
   try {
     for (const { path, required } of ROUTES) {
-      const errs = await auditRoute(browser, `${base}${path}`, required);
+      let errs;
+      try {
+        errs = await auditRoute(browser, `${base}${path}`, required);
+      } catch (error) {
+        if (!/Execution context was destroyed/i.test(String(error))) throw error;
+        // Navegação transitória invalida o contexto: repetir apenas esta rota uma vez.
+        console.warn(`[jsonld] contexto de navegação reiniciado em ${path}; nova tentativa única`);
+        errs = await auditRoute(browser, `${base}${path}`, required);
+      }
       if (errs.length) {
         allErrors.push(`\n✗ ${path}:\n  - ${errs.join("\n  - ")}`);
       } else {

@@ -10,11 +10,10 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { trackCTAClick } from "@/lib/analytics";
 import { buildWhatsAppUrl } from "@/lib/whatsappMessage";
+import { NAP, napOpeningHours } from "@/lib/nap";
 import { CIDADES, SERVICOS } from "@/lib/servicoCidadeData";
 import { getBairro } from "@/lib/atendimentoBairrosData";
 import { MessageCircle, MapPin, Clock, Shield, CheckCircle, Wrench } from "lucide-react";
-
-const WHATSAPP_NUMBER = "5541997452053";
 
 /**
  * /atendimento/:cidade/:bairro — captação hiperlocal.
@@ -44,7 +43,9 @@ export default function AtendimentoCidadeBairro() {
   }
 
   const localLabel = `${bairro.nome}, ${cidade.nome}`;
-  const title = `Atendimento Técnico em ${bairro.nome}, ${cidade.nome} | WhatsApp | Técnico em Curitiba`;
+  const titleMain = `Atendimento Técnico em ${bairro.nome}, ${cidade.nome}`;
+  const titleFull = `${titleMain} | WhatsApp`;
+  const title = titleFull.length <= 70 ? titleFull : titleMain;
   const description = `Suporte de informática no bairro ${bairro.nome} (${cidade.nome}). Domicílio, coleta ou remoto, orçamento no WhatsApp a partir de R$ 99,99 com garantia de 90 dias.`;
   const path = `/atendimento/${cidade.slug}/${bairro.slug}`;
   const url = `https://tecnicocuritiba.com.br${path}`;
@@ -68,21 +69,17 @@ export default function AtendimentoCidadeBairro() {
   const serviceLd = {
     "@context": "https://schema.org",
     "@type": "Service",
+    "@id": `${url}#service`,
+    name: `Assistência técnica de informática em ${localLabel}`,
     serviceType: "Assistência técnica de informática",
     provider: {
       "@type": "LocalBusiness",
-      name: "Técnico em Curitiba",
-      telephone: `+${WHATSAPP_NUMBER}`,
-      areaServed: {
-        "@type": "Place",
-        name: localLabel,
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: cidade.nome,
-          addressRegion: "PR",
-          addressCountry: "BR",
-        },
-      },
+      "@id": `${NAP.url}/#localbusiness`,
+      name: NAP.name,
+      alternateName: NAP.alternateName,
+      telephone: NAP.phone,
+      areaServed: [{ "@type": "Place", name: localLabel }, { "@type": "City", name: cidade.nome }, { "@type": "City", name: "Curitiba" }],
+      openingHoursSpecification: napOpeningHours(),
     },
     areaServed: { "@type": "Place", name: localLabel },
     url,
@@ -169,6 +166,9 @@ export default function AtendimentoCidadeBairro() {
               data-wa-source={`atendimento_${cidade.slug}_${bairro.slug}`}
               data-service="atendimento_bairro"
               data-neighborhood={`${cidade.slug}/${bairro.slug}`}
+              data-city={cidade.slug}
+              data-category={category}
+              data-symptom-slug={symptomSlug}
             >
               <a
                 href={waHref}
@@ -255,6 +255,9 @@ export default function AtendimentoCidadeBairro() {
               data-wa-source={`atendimento_${cidade.slug}_${bairro.slug}_final`}
               data-service="atendimento_bairro"
               data-neighborhood={`${cidade.slug}/${bairro.slug}`}
+              data-city={cidade.slug}
+              data-category={category}
+              data-symptom-slug={symptomSlug}
             >
               <a
                 href={waHref}

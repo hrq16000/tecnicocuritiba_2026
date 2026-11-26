@@ -27,34 +27,49 @@ const readSitemapUrls = async (): Promise<string[]> => {
   return [...urls];
 };
 
+const isolatedUrl = (url: string) => {
+  const target = new URL(abs(url));
+  target.searchParams.set("entry_popup", "0");
+  return target.toString();
+};
+
 const sample = <T,>(arr: T[], n: number): T[] => {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy.slice(0, n);
+  const ordered = [...arr].sort((a, b) => String(a).localeCompare(String(b)));
+  if (ordered.length <= n) return ordered;
+  return Array.from({ length: n }, (_, i) =>
+    ordered[Math.floor(((i + 0.5) * ordered.length) / n)],
+  );
 };
 
 test.describe("SEO: cada URL indexável tem exatamente 1 <h1>", () => {
-  test("amostra de 50 URLs do sitemap", async ({ page }) => {
+  test("amostra determinística de 50 URLs do sitemap", async ({ page }) => {
+    test.setTimeout(120_000);
     const all = await readSitemapUrls();
     expect(all.length, "sitemap deve ter URLs").toBeGreaterThan(0);
     const sampled = sample(all, 50);
-    const failures: Array<{ url: string; count: number }> = [];
+    const failures: Array<{ url: string; count: number; error?: string }> = [];
 
     for (const url of sampled) {
-      const res = await page.goto(abs(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
-      if (!res || !res.ok()) {
-        failures.push({ url, count: -1 });
-        continue;
+      const routePage = await page.context().newPage();
+      try {
+        const res = await routePage.goto(isolatedUrl(url), { waitUntil: "domcontentloaded", timeout: 15000 });
+        if (!res || !res.ok()) {
+          failures.push({ url, count: -1, error: `HTTP ${res?.status() ?? "sem resposta"}` });
+          continue;
+        }
+        await routePage.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 15000 });
+        await expect(routePage.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 10000 });
+        const count = await routePage.locator("h1").count();
+        if (count !== 1) failures.push({ url, count });
+      } catch (error) {
+        failures.push({ url, count: -1, error: error instanceof Error ? error.message : String(error) });
+      } finally {
+        await routePage.close();
       }
-      const count = await page.locator("h1").count();
-      if (count !== 1) failures.push({ url, count });
     }
 
     if (failures.length) {
-      console.error("H1 issues:\n" + failures.map((f) => `  ${f.count} h1 → ${f.url}`).join("\n"));
+      console.error("H1 issues:\n" + failures.map((f) => `  ${f.count} h1 → ${f.url}${f.error ? ` — ${f.error}` : ""}`).join("\n"));
     }
     expect(failures, `URLs sem 1 h1 único: ${failures.length}`).toHaveLength(0);
   });

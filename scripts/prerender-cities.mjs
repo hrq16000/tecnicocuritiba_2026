@@ -5,9 +5,11 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { readNap } from "./read-nap.mjs";
 
 const SITE = "https://tecnicocuritiba.com.br";
 const OG_VERSION = "20260615";
+const NAP = readNap();
 
 // === Cidades para arrumar-pc (national hub) ===
 export const CITIES = [
@@ -166,7 +168,7 @@ export async function prerenderCities(distDir) {
       "@type": "Service",
       name: `Arrumar PC online em ${c.cidade}`,
       serviceType: "Suporte técnico remoto de informática",
-      provider: { "@type": "Organization", name: "Técnico em Curitiba", url: SITE },
+      provider: { "@type": "Organization", "@id": `${SITE}/#organization`, name: NAP.name, url: NAP.url, telephone: NAP.phone },
       areaServed: { "@type": "City", name: c.cidade, containedInPlace: { "@type": "State", name: c.estadoNome } },
       description: meta.description,
       url: meta.url,
@@ -185,7 +187,7 @@ export async function prerenderCities(distDir) {
       "@type": "Service",
       name: cat.titlePrefix,
       serviceType: cat.titlePrefix,
-      provider: { "@type": "LocalBusiness", name: "Técnico em Curitiba", url: SITE, telephone: "+5541997452053" },
+      provider: { "@type": "LocalBusiness", "@id": `${SITE}/#localbusiness`, name: NAP.name, alternateName: NAP.alternateName, url: NAP.url, telephone: NAP.phone, openingHoursSpecification: NAP.openingHoursSpecification },
       areaServed: { "@type": "AdministrativeArea", name: "Região Metropolitana de Curitiba" },
       description: meta.description,
       url: meta.url,
@@ -205,7 +207,7 @@ export async function prerenderCities(distDir) {
         "@type": "Service",
         name: `${cat.titlePrefix} em ${meta.cityLabel}`,
         serviceType: cat.titlePrefix,
-        provider: { "@type": "LocalBusiness", name: "Técnico em Curitiba", url: SITE, telephone: "+5541997452053", areaServed: { "@type": "City", name: "Curitiba" } },
+        provider: { "@type": "LocalBusiness", "@id": `${SITE}/#localbusiness`, name: NAP.name, alternateName: NAP.alternateName, url: NAP.url, telephone: NAP.phone, openingHoursSpecification: NAP.openingHoursSpecification, areaServed: { "@type": "City", name: "Curitiba" } },
         areaServed: { "@type": local.kind === "bairro" ? "Place" : "City", name: meta.cityLabel, containedInPlace: { "@type": "State", name: "Paraná" } },
         offers: {
           "@type": "Offer", priceCurrency: "BRL", price: "300",

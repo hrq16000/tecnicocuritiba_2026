@@ -676,7 +676,7 @@ const PrecosEPoliticas = () => {
               <p className="text-primary-foreground/80 mb-6">
                 Envie os detalhes do seu problema e receba um orçamento personalizado
               </p>
-              <Button variant="heroWhatsapp" size="lg" asChild>
+              <Button variant="heroWhatsapp" size="lg" className="max-w-full h-auto min-h-12 whitespace-normal px-3 py-3 text-center sm:px-6" asChild>
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="h-5 w-5" />
                   Solicitar Orçamento via WhatsApp

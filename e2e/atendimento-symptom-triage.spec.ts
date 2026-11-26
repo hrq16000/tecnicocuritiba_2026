@@ -13,6 +13,7 @@ import { test, expect } from "@playwright/test";
 const BASE = process.env.E2E_BASE_URL || "http://localhost:8080";
 
 test.beforeEach(async ({ context, page }) => {
+  await context.route("https://wa.me/**", (r) => r.fulfill({ status: 204, body: "" }));
   await context.route(/functions\/v1\//, (r) =>
     r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
   );
@@ -42,9 +43,9 @@ const SYMPTOM_CASES = [
 
 for (const c of SYMPTOM_CASES) {
   test(`WhatsApp de ${c.path} inclui category+symptomSlug`, async ({ page }) => {
-    await page.goto(`${BASE}${c.path}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE}${c.path}&entry_popup=0`, { waitUntil: "domcontentloaded" });
 
-    const hero = page.locator(`[data-cta-location="${c.ctaLocation}"] a`);
+    const hero = page.locator(`a[data-cta-location="${c.ctaLocation}"]`);
     await expect(hero).toBeVisible();
     const href = await hero.getAttribute("href");
     const decoded = decodeURIComponent(href || "");
@@ -55,13 +56,13 @@ for (const c of SYMPTOM_CASES) {
     expect(decoded).toContain(c.expectSymptom);
 
     // Tracking: clicar o botão e checar dataLayer
-    await hero.evaluate((el) => el.setAttribute("target", "_self"));
-    await hero.click({ noWaitAfter: true });
+    await hero.click();
+    await expect(page.getByRole("dialog", { name: /Triagem —/ })).toBeVisible();
     const events = await page.evaluate(
       () => (window as unknown as { dataLayer: unknown[][] }).dataLayer || [],
     );
     const ctaEvent = events.find(
-      (e) => Array.isArray(e) && e[0] === "event" && e[1] === "cta_click",
+      (e) => e && e[0] === "event" && e[1] === "cta_click",
     );
     expect(ctaEvent, "cta_click emitido").toBeTruthy();
     const payload = (ctaEvent as unknown[])[2] as Record<string, unknown>;

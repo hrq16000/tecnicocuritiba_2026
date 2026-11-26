@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { NAP } from "../src/lib/nap";
 
 /**
  * Regressão estrutural do JSON-LD LocalBusiness (home) e do BreadcrumbList
@@ -43,13 +44,10 @@ test.describe("JSON-LD LocalBusiness / BreadcrumbList", () => {
     expect(lb, "LocalBusiness ausente na home").toBeTruthy();
 
     // Name + Address + Phone (NAP)
-    expect(String(lb!.name || "")).toContain("Curitiba");
+    expect(lb!.name).toBe(NAP.name);
     expect(String(lb!.telephone || "")).toMatch(/\+?55.?41.?9{0,1}9745.?2053/);
-    const address = lb!.address as Json;
-    expect(address, "address ausente").toBeTruthy();
-    expect(address.addressLocality).toBe("Curitiba");
-    expect(address.addressRegion).toBe("PR");
-    expect(address.addressCountry).toBe("BR");
+    // Service-area business sem loja física: área atendida abaixo é obrigatória.
+    expect(lb!.address, "LocalBusiness não pode anunciar endereço físico inexistente").toBeUndefined();
 
     // Área atendida
     const areaServed = lb!.areaServed as Json[];

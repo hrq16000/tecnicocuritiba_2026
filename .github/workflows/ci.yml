@@ -4,14 +4,31 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      production_release_confirmed:
+        description: "Confirmo que o host Production, o SHA publicado e o rollback foram verificados."
+        required: true
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+# Local CI builds only: initialize the browser SDK without a real backend or secrets.
+# Production deployment configuration is independent of this workflow.
+env:
+  VITE_SUPABASE_URL: http://127.0.0.1:54321
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-real-key
+  VITE_SUPABASE_PROJECT_ID: ci-local
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -96,7 +113,7 @@ jobs:
         run: npm run validate:jsonld
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: build
     steps:
@@ -110,7 +127,7 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
       - name: Build
         run: npm run build
       - name: Start preview
@@ -166,13 +183,20 @@ jobs:
         env:
           E2E_BASE_URL: http://localhost:8080
         run: node scripts/check-atendimento-seo.mjs
+      - name: IndexNow guard tests (default, CI block, opt-in local, IPv6)
+        run: node --test scripts/indexnow-live-check-node-test.mjs
       - name: IndexNow infra + sitemap ping check
         env:
+          CI: "true"
+          INDEXNOW_LIVE_CHECK: "0"
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Step-level empty values prevent local placeholders from becoming remote credentials.
+          VITE_SUPABASE_URL: ""
+          VITE_SUPABASE_PUBLISHABLE_KEY: ""
         run: node scripts/check-indexnow-ping.mjs
       - name: Run targeted E2E (+ jsonld-presence + atendimento CTAs/FAQ/triage)
-        run: npx playwright test e2e/whatsapp-funnel.spec.ts e2e/termos-e-condicoes.spec.ts e2e/seo-sitemap-robots.spec.ts e2e/como-funciona-mobile.spec.ts e2e/nap-consistency.spec.ts e2e/a11y-skiplink.spec.ts e2e/seo-h1.spec.ts e2e/seo-title-dedup.spec.ts e2e/funnel-mobile-no-skip.spec.ts e2e/jsonld-presence.spec.ts e2e/atendimento-whatsapp.spec.ts e2e/atendimento-symptom-triage.spec.ts e2e/atendimento-faq-jsonld.spec.ts e2e/localbusiness-jsonld.spec.ts e2e/breadcrumb-jsonld.spec.ts e2e/og-twitter-meta.spec.ts e2e/whatsapp-message-context.spec.ts e2e/whatsapp-prefill-fallback.spec.ts e2e/service-webpage-jsonld.spec.ts e2e/og-image-fallback.spec.ts e2e/service-gallery-order.spec.ts e2e/nap-consistency.spec.ts e2e/cta-accessibility.spec.ts e2e/business-wave-3t.spec.ts e2e/b2b-a11y-axe.spec.ts e2e/b2b-anchors-links.spec.ts e2e/funnel-console-gate.spec.ts e2e/consent-mode.spec.ts e2e/layout-quality.spec.ts --retries=1 --trace=retain-on-failure
+        run: npx playwright test e2e/whatsapp-funnel.spec.ts e2e/termos-e-condicoes.spec.ts e2e/seo-sitemap-robots.spec.ts e2e/como-funciona-mobile.spec.ts e2e/nap-consistency.spec.ts e2e/a11y-skiplink.spec.ts e2e/seo-h1.spec.ts e2e/seo-title-dedup.spec.ts e2e/funnel-mobile-no-skip.spec.ts e2e/jsonld-presence.spec.ts e2e/atendimento-whatsapp.spec.ts e2e/atendimento-symptom-triage.spec.ts e2e/atendimento-faq-jsonld.spec.ts e2e/localbusiness-jsonld.spec.ts e2e/breadcrumb-jsonld.spec.ts e2e/og-twitter-meta.spec.ts e2e/whatsapp-message-context.spec.ts e2e/whatsapp-prefill-fallback.spec.ts e2e/service-webpage-jsonld.spec.ts e2e/og-image-fallback.spec.ts e2e/service-gallery-order.spec.ts e2e/cta-accessibility.spec.ts e2e/business-wave-3t.spec.ts e2e/b2b-a11y-axe.spec.ts e2e/b2b-anchors-links.spec.ts e2e/funnel-console-gate.spec.ts e2e/consent-mode.spec.ts e2e/layout-quality.spec.ts --retries=1 --trace=retain-on-failure
         env:
           E2E_BASE_URL: http://localhost:8080
           CI: "true"
@@ -198,7 +222,7 @@ jobs:
           if-no-files-found: ignore
 
   a11y:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: build
     steps:
@@ -222,7 +246,7 @@ jobs:
       - name: Axe a11y (fail em serious/critical)
         env:
           E2E_BASE_URL: http://localhost:8080
-        run: npx playwright test e2e/a11y-axe.spec.ts --reporter=list 2>&1 | tee a11y-report.log
+        run: npx playwright test e2e/a11y-axe.spec.ts --project=chromium --reporter=list 2>&1 | tee a11y-report.log
       - name: Upload a11y report
         if: always()
         continue-on-error: true
@@ -235,10 +259,11 @@ jobs:
           if-no-files-found: ignore
 
 
+  # No external effects on merge/push. Manual dispatch requires explicit input + owner variable.
   indexnow:
     runs-on: ubuntu-latest
     needs: [build, e2e]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.production_release_confirmed == true && vars.TECNICOCURITIBA_PRODUCTION_RELEASE_CONFIRMED_20261125 == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -275,10 +300,11 @@ jobs:
           fi
           node scripts/indexnow-ping.mjs
 
+  # Uses the Supabase service role indirectly; manual dispatch + owner variable are both required.
   seo-deploy-hook:
     runs-on: ubuntu-latest
     needs: [build, e2e]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.production_release_confirmed == true && vars.TECNICOCURITIBA_PRODUCTION_RELEASE_CONFIRMED_20261125 == 'true'
     steps:
       - name: Reenviar sitemaps ao Search Console + validar canônicos
         env:
@@ -365,7 +391,7 @@ jobs:
           if-no-files-found: ignore
 
   ga4-utms:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: build
     steps:

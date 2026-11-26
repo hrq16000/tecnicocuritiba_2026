@@ -22,8 +22,10 @@ const ROUTES = [
 
 const VIEWPORTS = [
   { name: "mobile-360", width: 360, height: 780 },
+  { name: "mobile-390", width: 390, height: 844 },
   { name: "mobile-430", width: 430, height: 932 },
   { name: "desktop-1280", width: 1280, height: 900 },
+  { name: "desktop-1440", width: 1440, height: 900 },
 ];
 
 for (const viewport of VIEWPORTS) {

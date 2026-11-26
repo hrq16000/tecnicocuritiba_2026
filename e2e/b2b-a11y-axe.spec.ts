@@ -18,6 +18,11 @@ const B2B_ROUTES = [
   "/servicos/redes-wifi",
   "/servicos/backup-recuperacao",
 ];
+const isolatedUrl = (route: string) => {
+  const url = new URL(route, BASE);
+  url.searchParams.set("entry_popup", "0");
+  return url.toString();
+};
 
 const ratioOf = (summary: string): number => {
   const m = /contrast of ([\d.]+)/.exec(summary);
@@ -33,7 +38,9 @@ const isBrandToken = (summary: string) => {
 
 for (const route of B2B_ROUTES) {
   test(`axe B2B: sem violações serious/critical em ${route}`, async ({ page }) => {
-    await page.goto(`${BASE}${route}`, { waitUntil: "networkidle" });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(isolatedUrl(route), { waitUntil: "networkidle" });
+    await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
@@ -57,7 +64,9 @@ for (const route of B2B_ROUTES) {
   });
 
   test(`landmark e teclado em ${route}`, async ({ page }) => {
-    await page.goto(`${BASE}${route}`, { waitUntil: "networkidle" });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(isolatedUrl(route), { waitUntil: "networkidle" });
+    await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
 
     // Skip link precisa de destino real e único.
     await expect(page.locator("#main-content")).toHaveCount(1);

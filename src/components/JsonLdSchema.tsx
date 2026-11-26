@@ -8,9 +8,9 @@ const BUILD_DATE = new Date().toISOString();
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": ["LocalBusiness", "ProfessionalService", "ComputerRepairService"],
-  "@id": `${SITE}/#organization`,
-  "name": "Técnico em Curitiba - Suporte em Informática",
-  "alternateName": ["Técnico de Informática em Curitiba", "Assistência Técnica Curitiba"],
+  "@id": `${SITE}/#localbusiness`,
+  "name": NAP.name,
+  "alternateName": [NAP.alternateName, "Técnico de Informática em Curitiba", "Assistência Técnica Curitiba"],
   "description": "Técnico de informática em Curitiba: conserto de PC e notebook, formatação, remoção de vírus e upgrade de SSD. Atendimento via WhatsApp, a partir de R$ 99,99.",
   "url": SITE,
   "telephone": NAP.phone,
@@ -22,7 +22,6 @@ const localBusinessSchema = {
   "slogan": "Assistência Técnica Nº1 de Curitiba e Região",
   "paymentAccepted": "Dinheiro, Cartão de Crédito, Cartão de Débito, PIX, Transferência Bancária",
 
-  "geo": { "@type": "GeoCoordinates", "latitude": "-25.4284", "longitude": "-49.2733" },
   "areaServed": [
     { "@type": "City", "name": "Curitiba", "sameAs": "https://pt.wikipedia.org/wiki/Curitiba" },
     { "@type": "City", "name": "São José dos Pinhais" },
@@ -44,7 +43,6 @@ const localBusinessSchema = {
     "Suporte técnico em informática", "Instalação de câmeras CFTV",
     "Conserto de impressoras", "Assistência de eletrodomésticos inteligentes"
   ],
-  "hasMap": "https://www.google.com/maps?cid=tecnicocuritiba"
 };
 
 const faqSchema = {
@@ -83,9 +81,9 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": `${SITE}/#organization`,
-  "name": "Técnico em Curitiba",
-  "alternateName": "Técnico de Informática em Curitiba",
-  "legalName": "Técnico em Curitiba — Assistência Técnica em Informática",
+  "name": NAP.name,
+  "alternateName": NAP.alternateName,
+  "legalName": NAP.legalName,
   "taxID": "41.723.708/0001-58",
   "vatID": "41723708000158",
 
@@ -145,7 +143,7 @@ const navigationSchema = {
   ]
 };
 
-export const JsonLdSchema = () => {
+export const JsonLdSchema = ({ includeHomeWebPage = true }: { includeHomeWebPage?: boolean } = {}) => {
   useEffect(() => {
     // Limpa schemas antigos
     document.querySelectorAll('script[data-schema="true"]').forEach(s => s.remove());
@@ -155,7 +153,7 @@ export const JsonLdSchema = () => {
       ['ld-faqpage', faqSchema],
       ['ld-website', websiteSchema],
       ['ld-organization', organizationSchema],
-      ['ld-webpage', webPageSchema],
+      ...(includeHomeWebPage ? [['ld-webpage', webPageSchema] as [string, Record<string, unknown>]] : []),
       ['ld-itemlist-services', serviceItemListSchema],
       ['ld-navigation', navigationSchema],
     ];
@@ -169,7 +167,7 @@ export const JsonLdSchema = () => {
     return () => {
       document.querySelectorAll('script[data-schema="true"]').forEach(s => s.remove());
     };
-  }, []);
+  }, [includeHomeWebPage]);
 
   return null;
 };

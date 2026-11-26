@@ -15,6 +15,10 @@ const CASES = [
 for (const c of CASES) {
   test(`FAQPage JSON-LD válido em ${c.path}`, async ({ page }) => {
     await page.goto(`${BASE}${c.path}`, { waitUntil: "domcontentloaded" });
+    // O gate de HTML pré-renderizado permanece em check-atendimento-seo.mjs.
+    // Aqui validamos os dados locais efetivamente montados pelo React.
+    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(page.locator('script[data-jsonld-scope="local"]')).toHaveCount(1);
     const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
     const faqs = blocks
       .map((t) => {

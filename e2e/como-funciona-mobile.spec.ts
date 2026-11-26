@@ -7,6 +7,7 @@ test.use({ ...devices["iPhone 13"] });
 test.describe("Como Funciona + modais — CTAs e CLS", () => {
   test("CTAs WhatsApp permanecem clicáveis e sem links tel:", async ({ page }) => {
     // Coletor de CLS via PerformanceObserver
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addInitScript(() => {
       (window as unknown as { __cls: number }).__cls = 0;
       new PerformanceObserver((list) => {
@@ -22,35 +23,40 @@ test.describe("Como Funciona + modais — CTAs e CLS", () => {
       }).observe({ type: "layout-shift", buffered: true });
     });
 
-    await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE + "/?entry_popup=0", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
 
-    // Hidratação básica do hero antes do fallback
+    // Hidratação básica do hero antes de validar os CTAs.
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     // Regra do projeto: sem links tel:
     const telCount = await page.locator('a[href^="tel:"]').count();
     expect(telCount).toBe(0);
 
-    // Abre o modal "Prefiro agendar"
-    await page.getByRole("button", { name: /prefiro agendar/i }).click();
-    const modal = page.getByRole("dialog");
+    // Abre a triagem WhatsApp vigente sem navegar para o serviço externo.
+    await page.getByTestId("whatsapp-float").click();
+    const modal = page.getByRole("dialog", { name: /Triagem —/ });
     await expect(modal).toBeVisible();
+    await expect(modal.getByText(/Qual o equipamento/i)).toBeVisible();
 
-    // CTA WhatsApp dentro do modal continua clicável
-    const modalCta = modal.getByRole("link", { name: /continuar no whatsapp/i });
-    await expect(modalCta).toBeVisible();
-    await expect(modalCta).toBeEnabled();
-    expect(await modalCta.getAttribute("href")).toContain("wa.me");
-
-    // Fecha modal
-    await modal.getByRole("button", { name: /fechar/i }).click();
+    // Fecha a triagem pelo teclado e continua validando os CTAs da página.
+    await page.keyboard.press("Escape");
     await expect(modal).toBeHidden();
 
-    // Scroll até "Como funciona" e verifica CTAs por etapa
-    await page.evaluate(() => {
-      const el = document.getElementById("como-funciona-fluxo");
-      el?.scrollIntoView({ behavior: "instant" as ScrollBehavior, block: "start" });
-    });
+    // Mount the parent lazy boundary first. The nested Como Funciona placeholder
+    // does not exist until HomeDeferredSections enters the viewport.
+    const deferred = page.getByTestId("home-deferred-sections-lazy");
+    await expect(deferred).toBeAttached();
+    await deferred.scrollIntoViewIfNeeded();
+
+    // Now the nested placeholder is mounted and can be targeted without skipping
+    // its narrower IntersectionObserver rootMargin.
+    const fluxo = page.locator("#como-funciona-fluxo");
+    const fluxoPlaceholder = page.getByTestId("home-como-funciona-lazy");
+    await expect(fluxoPlaceholder).toBeAttached({ timeout: 10_000 });
+    await fluxoPlaceholder.scrollIntoViewIfNeeded();
+    await expect(fluxo).toBeVisible({ timeout: 10_000 });
+    await fluxo.scrollIntoViewIfNeeded();
     for (let i = 1; i <= 4; i++) {
       const cta = page.getByTestId(`como-funciona-cta-${i}`);
       await expect(cta).toBeVisible();
@@ -60,7 +66,7 @@ test.describe("Como Funciona + modais — CTAs e CLS", () => {
     }
 
     // Sticky WhatsApp mobile permanece visível e clicável
-    const sticky = page.locator('[data-cta-location="hero_sticky_mobile"]');
+    const sticky = page.locator('[data-cta-location="sticky_mobile"]');
     await expect(sticky).toBeVisible();
     await expect(sticky).toBeEnabled();
 

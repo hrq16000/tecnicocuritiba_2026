@@ -28,7 +28,7 @@ for (const route of PAGES) {
     const missing: string[] = [];
     for (const h of hashes) {
       const id = decodeURIComponent(h.slice(1));
-      if ((await page.locator(`#${CSS.escape(id)}`).count()) === 0) missing.push(h);
+      if (!(await page.evaluate((targetId) => document.getElementById(targetId) !== null, id))) missing.push(h);
     }
     expect(missing, `Âncoras sem destino em ${route}`).toEqual([]);
   });
