@@ -5,7 +5,8 @@ import { test, expect } from "@playwright/test";
  * ficar visível ao receber foco e levar para <main id="main-content">.
  */
 test("skip-link fica visível ao Tab e leva ao <main>", async ({ page }) => {
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto("/?entry_popup=0", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
 
   await page.keyboard.press("Tab");
 
@@ -23,6 +24,6 @@ test("skip-link fica visível ao Tab e leva ao <main>", async ({ page }) => {
   await expect(main).toHaveCount(1);
 
   // Ativar leva a âncora para o main
-  await skip.click();
+  await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#main-content$/);
 });

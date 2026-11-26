@@ -36,6 +36,7 @@ for (const vp of VIEWPORTS) {
     });
 
     await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`${BASE}/?entry_popup=0`, { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
 
@@ -51,7 +52,7 @@ for (const vp of VIEWPORTS) {
     await expect(dialog).toBeHidden();
 
     // Rota B2B (PJ) — mesma exigência de console limpo.
-    await page.goto(`${BASE}/suporte-empresas`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE}/suporte-empresas?entry_popup=0`, { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
 
     expect(errors, `erros de console em ${vp.name}:\n${errors.join("\n")}`).toEqual([]);

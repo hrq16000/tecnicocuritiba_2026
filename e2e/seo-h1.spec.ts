@@ -27,6 +27,12 @@ const readSitemapUrls = async (): Promise<string[]> => {
   return [...urls];
 };
 
+const isolatedUrl = (url: string) => {
+  const target = new URL(abs(url));
+  target.searchParams.set("entry_popup", "0");
+  return target.toString();
+};
+
 const sample = <T,>(arr: T[], n: number): T[] => {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -38,19 +44,20 @@ const sample = <T,>(arr: T[], n: number): T[] => {
 
 test.describe("SEO: cada URL indexável tem exatamente 1 <h1>", () => {
   test("amostra de 50 URLs do sitemap", async ({ page }) => {
+    test.setTimeout(90_000);
     const all = await readSitemapUrls();
     expect(all.length, "sitemap deve ter URLs").toBeGreaterThan(0);
     const sampled = sample(all, 50);
     const failures: Array<{ url: string; count: number }> = [];
 
     for (const url of sampled) {
-      const res = await page.goto(abs(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+      const res = await page.goto(isolatedUrl(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
       if (!res || !res.ok()) {
         failures.push({ url, count: -1 });
         continue;
       }
-      // O preview local pode entregar o shell sem barra final; este teste
-      // mede o DOM visível, não o H1 de noscript. Os gates HTTP permanecem.
+      // Espera a hidratação antes de validar o heading acessível.
+      await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 10000 });
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       const count = await page.locator("h1").count();
       if (count !== 1) failures.push({ url, count });

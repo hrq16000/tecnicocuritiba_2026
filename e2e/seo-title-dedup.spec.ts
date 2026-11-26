@@ -25,6 +25,12 @@ const readSitemapUrls = (): string[] => {
   return [...urls];
 };
 
+const isolatedUrl = (url: string) => {
+  const target = new URL(abs(url));
+  target.searchParams.set("entry_popup", "0");
+  return target.toString();
+};
+
 const sample = <T,>(arr: T[], n: number): T[] => {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -36,14 +42,16 @@ const sample = <T,>(arr: T[], n: number): T[] => {
 
 test.describe("SEO: <title> único por URL", () => {
   test("amostra de 50 URLs do sitemap", async ({ page }, testInfo) => {
+    test.setTimeout(90_000);
     const all = readSitemapUrls();
     expect(all.length).toBeGreaterThan(0);
     const sampled = sample(all, 50);
     const rows: Array<{ url: string; title: string }> = [];
 
     for (const url of sampled) {
-      const res = await page.goto(abs(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
+      const res = await page.goto(isolatedUrl(url), { waitUntil: "domcontentloaded", timeout: 15000 }).catch(() => null);
       expect(res?.ok(), `HTTP inválido em ${url}`).toBe(true);
+      await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1", undefined, { timeout: 10000 });
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       // Um title não vazio pode ser apenas o fallback estático da home.
       if (url !== "/") {

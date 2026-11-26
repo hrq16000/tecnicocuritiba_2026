@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 
 const BASE = process.env.E2E_BASE_URL ?? "http://localhost:8080";
+const isolatedUrl = (route: string) => {
+  const url = new URL(route, BASE);
+  url.searchParams.set("entry_popup", "0");
+  return url.toString();
+};
 
 // Amostragem estável cobrindo serviço, cidade, bairro e problema.
 const ROUTES = [
@@ -26,7 +31,8 @@ async function collectJsonLd(page: import("@playwright/test").Page) {
 
 for (const route of ROUTES) {
   test(`JSON-LD presente em ${route}`, async ({ page }) => {
-    await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });
+    await page.goto(isolatedUrl(route), { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect.poll(async () => {
       const schemas = await collectJsonLd(page);

@@ -6,6 +6,11 @@ import { test, expect, type Page } from "@playwright/test";
  */
 
 const ROUTES = ["/", "/atendimento/curitiba", "/servicos/redes-wifi"];
+const isolatedUrl = (route: string) => {
+  const url = new URL(route, process.env.E2E_BASE_URL || "http://localhost:8080");
+  url.searchParams.set("entry_popup", "0");
+  return url.toString();
+};
 
 // Botões (não links inline de texto corrido): têm cantos arredondados/fundo.
 const CTA_SELECTOR = 'a[href*="wa.me"][class*="rounded"], [data-cta-location][class*="rounded"]';
@@ -44,8 +49,9 @@ for (const viewport of [
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
     for (const route of ROUTES) {
-      await page.goto(route);
+      await page.goto(isolatedUrl(route));
       await page.waitForLoadState("networkidle");
+      await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
       await page.waitForTimeout(800);
 
       const items = await ctas(page);
@@ -69,8 +75,9 @@ for (const viewport of [
 }
 
 test("CTA de WhatsApp é focável por teclado e mostra foco visível", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(isolatedUrl("/"));
   await page.waitForLoadState("networkidle");
+  await page.waitForFunction(() => document.documentElement.dataset.hydrated === "1");
 
   const cta = page.locator('a[href*="wa.me"]').first();
   await cta.focus();

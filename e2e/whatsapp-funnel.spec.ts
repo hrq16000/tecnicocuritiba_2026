@@ -26,6 +26,7 @@ async function openFunnel(page: Page) {
 
 test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-only)", () => {
   test.beforeEach(async ({ page, context }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await installGtagSpy(page);
     await context.route("https://wa.me/**", (route) => route.fulfill({ status: 204, body: "" }));
     await context.route("https://www.googletagmanager.com/gtag/js?**", route => route.fulfill({ contentType: "application/javascript", body: "" }));
@@ -40,7 +41,7 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
 
     await expectFunnelStep(dialog, 2);
     await dialog.getByRole("button", { name: /^Samsung$/i }).first().click();
-    await dialog.getByRole("button", { name: /^Não liga$/i }).first().click();
+    await dialog.getByRole("button", { name: /^Não liga(?:\s*COLETA)?$/i }).first().click();
     await fillFunnelContext(dialog);
 
     await expect(dialog.getByText(/Coleta e Entrega/i).first()).toBeVisible();
@@ -110,13 +111,13 @@ test.describe("WhatsAppFunnel v3 — funil ramificado por equipamento (texto-onl
   });
 
   test("link 'Termos e Condições' resolve a rota pública /termos-e-condicoes", async ({ page }) => {
-    const res = await page.goto("/termos-e-condicoes");
+    const res = await page.goto("/termos-e-condicoes?entry_popup=0");
     expect(res?.ok()).toBeTruthy();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
   test("rota de fallback /funil-indisponivel carrega e mostra CTA WhatsApp", async ({ page }) => {
-    await page.goto("/funil-indisponivel");
+    await page.goto("/funil-indisponivel?entry_popup=0");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const wa = page.locator('a[href*="wa.me/5541997452053"][data-funnel-skip="1"]');
     await expect(wa).toBeVisible();

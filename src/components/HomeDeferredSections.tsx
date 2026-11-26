@@ -14,7 +14,7 @@ const FAQSection = lazy(() => import("@/components/FAQSection").then(m => ({ def
 const CitiesSection = lazy(() => import("@/components/CitiesSection").then(m => ({ default: m.CitiesSection })));
 const TopSearchedServicesSection = lazy(() => import("@/components/TopSearchedServicesSection").then(m => ({ default: m.TopSearchedServicesSection })));
 const SocialProofSection = lazy(() => import("@/components/SocialProofSection").then(m => ({ default: m.SocialProofSection })));
-const TestimonialsPlaceholder = lazy(() => import("@/components/TestimonialsPlaceholder").then(m => ({ default: m.TestimonialsPlaceholder })));
+
 const ComoFuncionaFluxo = lazy(() => import("@/components/ComoFuncionaFluxo").then(m => ({ default: m.ComoFuncionaFluxo })));
 
 const CoverageMapSection = lazy(() => import("@/components/CoverageMapSection").then(m => ({ default: m.CoverageMapSection })));
@@ -50,7 +50,6 @@ const DeferredContent = () => (
     <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><CitiesSection /></Suspense></LazyOnVisible>
     <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><NeighborhoodsSection /></Suspense></LazyOnVisible>
     <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><SocialProofSection /></Suspense></LazyOnVisible>
-    <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback height="300px" />}><TestimonialsPlaceholder /></Suspense></LazyOnVisible>
 
 
     <LazyOnVisible rootMargin="-240px 0px"><Suspense fallback={<SectionFallback />}><ComoFuncionaFluxo /></Suspense></LazyOnVisible>
