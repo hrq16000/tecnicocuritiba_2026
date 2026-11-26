@@ -77,7 +77,7 @@ const Index = () => {
           </section>
         ) : null}
 
-        <LazyOnVisible minHeight="900px" rootMargin="-320px 0px">
+        <LazyOnVisible minHeight="900px" rootMargin="-320px 0px" testId="home-deferred-sections-lazy">
           <Suspense fallback={<SectionFallback height="900px" />}>
             <HomeDeferredSections />
           </Suspense>

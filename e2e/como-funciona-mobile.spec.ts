@@ -43,11 +43,18 @@ test.describe("Como Funciona + modais — CTAs e CLS", () => {
     await page.keyboard.press("Escape");
     await expect(modal).toBeHidden();
 
-    // Scroll até "Como funciona" e verifica CTAs por etapa
+    // Mount the parent lazy boundary first. The nested Como Funciona placeholder
+    // does not exist until HomeDeferredSections enters the viewport.
+    const deferred = page.getByTestId("home-deferred-sections-lazy");
+    await expect(deferred).toBeAttached();
+    await deferred.scrollIntoViewIfNeeded();
+
+    // Now the nested placeholder is mounted and can be targeted without skipping
+    // its narrower IntersectionObserver rootMargin.
     const fluxo = page.locator("#como-funciona-fluxo");
-    // Scroll to the actual lazy placeholder. Its negative rootMargin is narrower
-    // than a viewport-height jump, so scrolling the page in large steps can skip it.
-    await page.getByTestId("home-como-funciona-lazy").scrollIntoViewIfNeeded();
+    const fluxoPlaceholder = page.getByTestId("home-como-funciona-lazy");
+    await expect(fluxoPlaceholder).toBeAttached({ timeout: 10_000 });
+    await fluxoPlaceholder.scrollIntoViewIfNeeded();
     await expect(fluxo).toBeVisible({ timeout: 10_000 });
     await fluxo.scrollIntoViewIfNeeded();
     for (let i = 1; i <= 4; i++) {
